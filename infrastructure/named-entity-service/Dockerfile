@@ -9,6 +9,8 @@ vagrant@vagrant-ubuntu-precise-64:~/docker-nltk$ cat Dockerfile
 FROM ubuntu:precise
 MAINTAINER Nick Lothian nick.lothian@gmail.com
 
+# Expose port 5000
+expose 5000
 
 RUN apt-get update
 
@@ -41,7 +43,7 @@ RUN cd /var/local/acuitra;echo services/named-entity-service/*> .git/info/sparse
 RUN cd /var/local/acuitra;git checkout master
 
 # Run the service
-RUN /usr/bin/python /var/local/acuitra/services/named-entity-service/named-entity-ws.py  
+#RUN /usr/bin/python /var/local/acuitra/services/named-entity-service/named-entity-ws.py  
 
 
 

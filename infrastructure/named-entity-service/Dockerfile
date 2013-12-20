@@ -24,3 +24,10 @@ RUN /usr/bin/python -m nltk.downloader treebank
 RUN /usr/bin/python -m nltk.downloader words
 RUN /usr/bin/python -m nltk.downloader maxent_ne_chunker
 RUN /usr/bin/python -m nltk.downloader maxent_treebank_pos_tagger
+
+
+# Flask
+RUN pip install flask
+
+# GIT
+RUN apt-get -y install git

@@ -34,8 +34,6 @@ RUN pip install flask
 # GIT
 RUN apt-get -y install git
 
-# Screen
-RUN apt-get -y install screen
 
 # Get the service
 RUN mkdir -p /var/local/acuitra
@@ -46,7 +44,7 @@ RUN cd /var/local/acuitra;echo services/named-entity-service/*> .git/info/sparse
 RUN cd /var/local/acuitra;git checkout master
 
 # Run the service
-RUN screen /usr/bin/python /var/local/acuitra/services/named-entity-service/named-entity-ws.py  
+# RUN /usr/bin/python /var/local/acuitra/services/named-entity-service/named-entity-ws.py  
 
 
 

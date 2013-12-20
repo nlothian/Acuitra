@@ -31,3 +31,18 @@ RUN pip install flask
 
 # GIT
 RUN apt-get -y install git
+
+# Get the service
+RUN mkdir -p /var/local/acuitra
+RUN git init /var/local/acuitra/
+RUN cd /var/local/acuitra;git remote add -f origin https://github.com/nlothian/Acuitra.git
+RUN cd /var/local/acuitra;git config core.sparseCheckout true
+RUN cd /var/local/acuitra;echo services/named-entity-service/*> .git/info/sparse-checkout
+RUN cd /var/local/acuitra;git checkout master
+
+# Run the service
+RUN /usr/bin/python /var/local/acuitra/services/named-entity-service/named-entity-ws.py  
+
+
+
+  

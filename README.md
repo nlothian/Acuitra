@@ -17,7 +17,7 @@ For the Named Entity Recognition Service
 
 For the Question Service
 
-* edit questionservice.yaml to point to the named ednityt recognition service
+* edit questionservice.yaml to point to the named entity recognition service
 * mvn package
 * $ java -jar target/acuitra-0.0.1-SNAPSHOT-shaded.jar server question-service.yaml
 

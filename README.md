@@ -22,7 +22,7 @@ For the Question Service
 * $ java -jar target/acuitra-0.0.1-SNAPSHOT-shaded.jar server question-service.yaml
 
 
-Then:
+Then (assuming you have Jena setup on the correct port (TODO: document this!)):
 
 * http://127.0.0.1:8080/ask?question=what%20is%20the%20capital%20of%20Australia
 

@@ -70,10 +70,12 @@ public class SPARQLQueryStage extends AbstractAnswerStage {
 		builder.append("SELECT DISTINCT * WHERE { ");
 		builder.append(" ?country a <http://dbpedia.org/ontology/Country> .");
 		builder.append(" ?city a <http://dbpedia.org/ontology/Place> .");
-		builder.append(" ?country <http://dbpedia.org/property/capital> ?city .");
-		builder.append(" ?country <http://dbpedia.org/property/commonName> ");
+		builder.append(" ?country <http://dbpedia.org/property/capital> ?city .");		
+		builder.append(" OPTIONAL{?country <http://dbpedia.org/ontology/dissolutionDate> ?end} . ");
+		builder.append(" OPTIONAL{?country <http://dbpedia.org/property/yearEnd> ?end} . ");
+		builder.append(" ?country <http://dbpedia.org/property/commonName> ");		
 		builder.append("\"" + target + "\"@en");
-		builder.append("} ORDER BY ?country LIMIT 20 ");
+		builder.append("} ORDER BY ?end LIMIT 20 ");
 				
 		
 		

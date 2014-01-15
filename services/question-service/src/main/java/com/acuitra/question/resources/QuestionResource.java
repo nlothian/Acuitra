@@ -27,11 +27,13 @@ public class QuestionResource {
 	
 	private Client jerseyClient;
 	private String namedEntityRecognitionURL;
+	private String sparqlEndpointURL; 
 
 
-	public QuestionResource(Client jerseyClient, String namedEntityRecognitionURL) {
+	public QuestionResource(Client jerseyClient, String namedEntityRecognitionURL, String sparqlEndpointURL) {
 		this.jerseyClient = jerseyClient;
 		this.namedEntityRecognitionURL = namedEntityRecognitionURL;
+		this.sparqlEndpointURL = sparqlEndpointURL;
 	}
 	
 
@@ -58,7 +60,7 @@ public class QuestionResource {
 		ContextWithJerseyClient<Map<String,String>> answerContext = new  ContextWithJerseyClient<>(jerseyClient);
 		answerContext.setInput(questionContext.getPreviousOutputs());
 		
-		generateAnswerPipeline.addStage(new SPARQLQueryStage());
+		generateAnswerPipeline.addStage(new SPARQLQueryStage(sparqlEndpointURL));
 		generateAnswerPipeline.addStage(new ProcessSPARQLResultStage());
 		
 		generateAnswerPipeline.execute(answerContext);

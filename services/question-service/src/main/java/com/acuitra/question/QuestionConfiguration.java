@@ -9,10 +9,12 @@ import com.yammer.dropwizard.config.Configuration;
 
 public class QuestionConfiguration extends Configuration {
     @NotNull
-    private String namedEntityRecognitionURL;	
+    private String namedEntityRecognitionURL;
+    
+    @NotNull
+    private String sparqlEndpointURL;
 
-	
-    @Valid
+	@Valid
     @NotNull
     @JsonProperty    
     private JerseyClientConfiguration httpClient = new JerseyClientConfiguration();
@@ -25,5 +27,10 @@ public class QuestionConfiguration extends Configuration {
 		return namedEntityRecognitionURL;
 	}
 
+    public String getSparqlEndpointURL() {
+		return sparqlEndpointURL;
+	}
+	
+	
 	 
 }

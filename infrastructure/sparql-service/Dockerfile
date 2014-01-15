@@ -12,4 +12,11 @@ RUN echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true 
 RUN apt-get install oracle-java7-installer -y
 
 
+RUN apt-get install wget -y
+RUN wget http://www.apache.org/dist/jena/binaries/jena-fuseki-1.0.0-distribution.tar.gz
+RUN wget http://www.apache.org/dist/jena/binaries/apache-jena-2.11.0.tar.gz
 
+RUN tar -xf jena-fuseki-1.0.0-distribution.tar.gz
+RUN tar -xf apache-jena-2.11.0.tar.gz
+
+ENV FUSEKI_HOME /jena-fuseki-1.0.0

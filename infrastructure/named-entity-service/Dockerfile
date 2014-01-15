@@ -1,4 +1,3 @@
-vagrant@vagrant-ubuntu-precise-64:~/docker-nltk$ cat Dockerfile
 # NLTK REST Webservice
 #
 # VERSION 0.1
@@ -18,6 +17,7 @@ RUN apt-get update
 RUN apt-get -y install build-essential python-dev
 RUN apt-get -y install python-setuptools
 RUN easy_install pip
+RUN pip install setuptools --no-use-wheel --upgrade
 RUN pip install -U numpy
 
 # NLTK requirements

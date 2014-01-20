@@ -17,9 +17,11 @@ For the Named Entity Recognition Service
 
 For the Question Service
 
-* edit questionservice.yaml to point to the named entity recognition service
-* mvn package
-* $ java -jar target/acuitra-0.0.1-SNAPSHOT-shaded.jar server question-service.yaml
+* cd infrastrcture/question-service
+* sudo docker build -t question-service .
+* sudo docker run  -p 8080:8080 -i -t question-service java -jar /var/local/acuitra/services/question-service/target/acuitra-0.0.1-SNAPSHOT.jar server /var/local/acuitra/services/question-service/question-service.yaml
+
+
 
 
 Then (assuming you have Jena setup on the correct port (TODO: document this!)):

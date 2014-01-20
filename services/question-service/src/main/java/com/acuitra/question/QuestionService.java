@@ -28,7 +28,7 @@ public class QuestionService extends Service<QuestionConfiguration> {
                 .using(env)            
                 .build();		    
 		
-		env.addResource(new QuestionResource(client, config.getNamedEntityRecognitionURL(), config.getSparqlEndpointURL()));
+		env.addResource(new QuestionResource(client, config.getNamedEntityRecognitionURL(), config.getSparqlEndpointURL(), config.getQuepyURL()));
 
 	}
 

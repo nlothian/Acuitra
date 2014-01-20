@@ -14,7 +14,10 @@ public class QuestionConfiguration extends Configuration {
     @NotNull
     private String sparqlEndpointURL;
 
-	@Valid
+    @NotNull 
+    private String quepyURL;
+
+    @Valid
     @NotNull
     @JsonProperty    
     private JerseyClientConfiguration httpClient = new JerseyClientConfiguration();
@@ -31,6 +34,10 @@ public class QuestionConfiguration extends Configuration {
 		return sparqlEndpointURL;
 	}
 	
+    
+	public String getQuepyURL() {
+		return quepyURL;
+	}
 	
 	 
 }

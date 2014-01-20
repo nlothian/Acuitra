@@ -1,2 +1,3 @@
 namedEntityRecognitionURL: http://192.168.1.19:5000/ner
+quepyURL: http://192.168.1.19:5001/question
 sparqlEndpointURL: http://192.168.1.19:3030/dbpedia/query

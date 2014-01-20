@@ -13,9 +13,11 @@ import com.acuitra.pipeline.Pipeline;
 import com.acuitra.question.core.Answer;
 import com.acuitra.question.core.Question;
 import com.acuitra.stages.answer.ProcessSPARQLResultStage;
+import com.acuitra.stages.answer.RunSPARQLQueryStage;
 import com.acuitra.stages.answer.SPARQLQueryStage;
 import com.acuitra.stages.question.ExtractTaggedEntityWordStage;
 import com.acuitra.stages.question.NamedEntityRecognitionStage;
+import com.acuitra.stages.question.QuepyStage;
 import com.acuitra.stages.question.RequestedWordToRDFPredicate;
 import com.sun.jersey.api.client.Client;
 import com.yammer.metrics.annotation.Timed;
@@ -27,13 +29,15 @@ public class QuestionResource {
 	
 	private Client jerseyClient;
 	private String namedEntityRecognitionURL;
-	private String sparqlEndpointURL; 
+	private String sparqlEndpointURL;
+	private String quepyURL; 
 
 
-	public QuestionResource(Client jerseyClient, String namedEntityRecognitionURL, String sparqlEndpointURL) {
+	public QuestionResource(Client jerseyClient, String namedEntityRecognitionURL, String sparqlEndpointURL, String quepyURL) {
 		this.jerseyClient = jerseyClient;
 		this.namedEntityRecognitionURL = namedEntityRecognitionURL;
 		this.sparqlEndpointURL = sparqlEndpointURL;
+		this.quepyURL = quepyURL;
 	}
 	
 
@@ -42,10 +46,12 @@ public class QuestionResource {
 	public Answer ask(@QueryParam("question") String param) {
 		Pipeline<Question, String> processQuestionPipeline = new Pipeline<>();
 		
-		processQuestionPipeline.addStage(new NamedEntityRecognitionStage(namedEntityRecognitionURL));
-		processQuestionPipeline.addStage(new ExtractTaggedEntityWordStage("NNP"));
-		processQuestionPipeline.addStage(new ExtractTaggedEntityWordStage("NN"));
-		processQuestionPipeline.addStage(new RequestedWordToRDFPredicate());		
+//		processQuestionPipeline.addStage(new NamedEntityRecognitionStage(namedEntityRecognitionURL));
+//		processQuestionPipeline.addStage(new ExtractTaggedEntityWordStage("NNP"));
+//		processQuestionPipeline.addStage(new ExtractTaggedEntityWordStage("NN"));
+//		processQuestionPipeline.addStage(new RequestedWordToRDFPredicate());
+		
+		processQuestionPipeline.addStage(new QuepyStage(quepyURL));
 		
 		
 		Question question = new Question(param);
@@ -60,7 +66,8 @@ public class QuestionResource {
 		ContextWithJerseyClient<Map<String,String>> answerContext = new  ContextWithJerseyClient<>(jerseyClient);
 		answerContext.setInput(questionContext.getPreviousOutputs());
 		
-		generateAnswerPipeline.addStage(new SPARQLQueryStage(sparqlEndpointURL));
+		//generateAnswerPipeline.addStage(new SPARQLQueryStage(sparqlEndpointURL));
+		generateAnswerPipeline.addStage(new RunSPARQLQueryStage(sparqlEndpointURL));
 		generateAnswerPipeline.addStage(new ProcessSPARQLResultStage());
 		
 		generateAnswerPipeline.execute(answerContext);

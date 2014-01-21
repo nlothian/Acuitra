@@ -3,9 +3,11 @@ package com.acuitra.question.core;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Answer {
+public class Answer {	
 	private String answer;
 	private Question question;
+	private String errorMessage;
+	
 	private Map<String, Object> debugInfo = new HashMap<>();
 	
 	public String getAnswer() {
@@ -32,5 +34,15 @@ public class Answer {
 		this.debugInfo.putAll(debug);
 	}
 	
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
+	}
 
+	public boolean isError() {
+		return (errorMessage != null);
+	}
+	
 }

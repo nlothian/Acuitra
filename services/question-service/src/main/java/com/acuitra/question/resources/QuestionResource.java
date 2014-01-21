@@ -12,6 +12,7 @@ import com.acuitra.pipeline.ContextWithJerseyClient;
 import com.acuitra.pipeline.Pipeline;
 import com.acuitra.question.core.Answer;
 import com.acuitra.question.core.Question;
+import com.acuitra.stages.StageException;
 import com.acuitra.stages.answer.ProcessSPARQLResultStage;
 import com.acuitra.stages.answer.RunSPARQLQueryStage;
 import com.acuitra.stages.answer.SPARQLQueryStage;
@@ -44,42 +45,48 @@ public class QuestionResource {
 	@GET
 	@Timed
 	public Answer ask(@QueryParam("question") String param) {
-		Pipeline<Question, String> processQuestionPipeline = new Pipeline<>();
-		
-//		processQuestionPipeline.addStage(new NamedEntityRecognitionStage(namedEntityRecognitionURL));
-//		processQuestionPipeline.addStage(new ExtractTaggedEntityWordStage("NNP"));
-//		processQuestionPipeline.addStage(new ExtractTaggedEntityWordStage("NN"));
-//		processQuestionPipeline.addStage(new RequestedWordToRDFPredicate());
-		
-		processQuestionPipeline.addStage(new QuepyStage(quepyURL));
-		
-		
-		Question question = new Question(param);
-		
-		ContextWithJerseyClient<Question> questionContext = new  ContextWithJerseyClient<>(jerseyClient);
-		questionContext.setInput(question);
-		
-		processQuestionPipeline.execute(questionContext);
-		
-		
-		Pipeline<Map<String,String>, String> generateAnswerPipeline = new Pipeline<>();
-		ContextWithJerseyClient<Map<String,String>> answerContext = new  ContextWithJerseyClient<>(jerseyClient);
-		answerContext.setInput(questionContext.getPreviousOutputs());
-		
-		//generateAnswerPipeline.addStage(new SPARQLQueryStage(sparqlEndpointURL));
-		generateAnswerPipeline.addStage(new RunSPARQLQueryStage(sparqlEndpointURL));
-		generateAnswerPipeline.addStage(new ProcessSPARQLResultStage());
-		
-		generateAnswerPipeline.execute(answerContext);
-		
-		
 		Answer answer = new Answer();
-		answer.setQuestion(question);
-		answer.setAnswer(answerContext.getPreviousOutput(ProcessSPARQLResultStage.class.getName()));		
-		
-		answer.addDebugInfo(questionContext.getPreviousOutputs());
-		answer.addDebugInfo(answerContext.getPreviousOutputs());
-		
+		try {
+			Pipeline<Question, String> processQuestionPipeline = new Pipeline<>();		
+			
+	//		processQuestionPipeline.addStage(new NamedEntityRecognitionStage(namedEntityRecognitionURL));
+	//		processQuestionPipeline.addStage(new ExtractTaggedEntityWordStage("NNP"));
+	//		processQuestionPipeline.addStage(new ExtractTaggedEntityWordStage("NN"));
+	//		processQuestionPipeline.addStage(new RequestedWordToRDFPredicate());
+			
+			processQuestionPipeline.addStage(new QuepyStage(quepyURL));
+			
+			
+			Question question = new Question(param);
+			
+			ContextWithJerseyClient<Question> questionContext = new  ContextWithJerseyClient<>(jerseyClient);
+			questionContext.setInput(question);
+			
+			processQuestionPipeline.execute(questionContext);
+			
+			
+			Pipeline<Map<String,String>, String> generateAnswerPipeline = new Pipeline<>();
+			ContextWithJerseyClient<Map<String,String>> answerContext = new  ContextWithJerseyClient<>(jerseyClient);
+			answerContext.setInput(questionContext.getPreviousOutputs());
+			
+			//generateAnswerPipeline.addStage(new SPARQLQueryStage(sparqlEndpointURL));
+			generateAnswerPipeline.addStage(new RunSPARQLQueryStage(sparqlEndpointURL));
+			generateAnswerPipeline.addStage(new ProcessSPARQLResultStage());
+			
+			generateAnswerPipeline.execute(answerContext);
+			
+			
+	
+			answer.setQuestion(question);
+			answer.setAnswer(answerContext.getPreviousOutput(ProcessSPARQLResultStage.class.getName()));		
+			
+			answer.addDebugInfo(questionContext.getPreviousOutputs());
+			answer.addDebugInfo(answerContext.getPreviousOutputs());
+						
+			
+		} catch(StageException e) {
+			answer.setErrorMessage(e.getLocalizedMessage());
+		}
 		
 		return answer;
 		

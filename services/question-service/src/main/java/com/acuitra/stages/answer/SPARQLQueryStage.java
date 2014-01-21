@@ -12,7 +12,12 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
-
+/**
+ * Not used at the moment
+ * 
+ * @author nlothian
+ *
+ */
 public class SPARQLQueryStage extends AbstractAnswerStage {
 
 	String sparqlEndpointURL;

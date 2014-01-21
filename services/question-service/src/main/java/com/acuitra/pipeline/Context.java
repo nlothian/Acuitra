@@ -27,7 +27,7 @@ public class Context<T, O> {
 		return previousOutputs.get(key);
 	}	
 	
-	void addOutput(String key, O output) {
+	public void addOutput(String key, O output) {
 		previousOutputs.put(key, output);
 	}
 	

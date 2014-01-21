@@ -4,7 +4,13 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+/**
+ * 
+ * Extracts an answer from a SPARQL resultset in JSON
+ * 
+ * @author nlothian
+ *
+ */
 public class ProcessSPARQLResultStage extends AbstractAnswerStage {
 
 
@@ -16,9 +22,9 @@ public class ProcessSPARQLResultStage extends AbstractAnswerStage {
 		try {
 			JsonNode rootNode = mapper.readTree(sparqlResult);
 			String var = rootNode.path("head").path("vars").get(0).asText();
-			String result = rootNode.path("results").path("bindings").path(0).path(var).path("value").asText();
 			
-			//String result = rootNode.path("results").path("bindings").path(0).path("city").path("value").asText();
+			// Note that we could have multiple answers (or the answer could be a list) and this only extracts the first result
+			String result = rootNode.path("results").path("bindings").path(0).path(var).path("value").asText();
 			
 			setOutput(result);
 		} catch (IOException e) {

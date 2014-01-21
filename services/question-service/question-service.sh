@@ -15,12 +15,14 @@ EOF
 }
 
 update() {
+	cd $QUESTION_SERVICE_HOME
 	git pull
 	mvn3 package
 }
 
 run() {
 	update
+	cd $QUESTION_SERVICE_HOME
 	java -jar ./target/acuitra-0.0.1-SNAPSHOT.jar server question-service.yaml
 }
 

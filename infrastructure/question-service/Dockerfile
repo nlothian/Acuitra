@@ -7,7 +7,7 @@ RUN apt-get -y install git
 
 
 # Get the service
-ENV QUESTION_SERVICE_HOME /var/local/acuitra
+ENV QUESTION_SERVICE_HOME /var/local/acuitra/services/question-service
 
 RUN mkdir -p /var/local/acuitra
 RUN git init /var/local/acuitra/

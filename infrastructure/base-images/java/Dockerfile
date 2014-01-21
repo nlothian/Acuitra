@@ -1,10 +1,10 @@
-# Ubuntu 12.04 (Precise) LTS with Java
+# Ubuntu 12.04 (Precise) LTS with Git+Java
 #
 # Version 0.1
 #
 
 # Ubuntu 12.04
-FROM ubuntu:precise
+FROM nlothian/git
 MAINTAINER Nick Lothian nick.lothian@gmail.com
 
 

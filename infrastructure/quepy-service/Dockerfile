@@ -1,36 +1,18 @@
 # Quepy Webservice
 #
+# BUILDAS sudo docker build -t quepy-service .
+# RUNAS /usr/bin/python /var/local/acuitra/services/quepy-service/webservice.py
+#
 # VERSION 0.1
 
 
 
 # Ubuntu 12.04
-FROM ubuntu:precise
+FROM nlothian/python-nltk
 MAINTAINER Nick Lothian nick.lothian@gmail.com
 
 # Expose port 5001
 expose 5001
-
-RUN apt-get update
-
-
-# Setup python
-RUN apt-get -y install build-essential python-dev
-RUN apt-get -y install python-setuptools
-RUN easy_install pip
-RUN pip install setuptools --no-use-wheel --upgrade
-
-# NLTK requirements
-RUN pip install -U pyyaml nltk
-RUN /usr/bin/python -m nltk.downloader maxent_treebank_pos_tagger
-RUN /usr/bin/python -m nltk.downloader wordnet
-
-# numpy
-RUN apt-get -y install python-numpy
-
-
-# Flask
-RUN pip install flask
 
 # Quepy
 RUN pip install quepy

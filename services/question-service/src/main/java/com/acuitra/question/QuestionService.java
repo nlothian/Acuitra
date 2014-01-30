@@ -2,6 +2,7 @@ package com.acuitra.question;
 
 
 import com.acuitra.question.resources.QuestionResource;
+import com.acuitra.servlet.filter.CorsHeadersFilter;
 import com.sun.jersey.api.client.Client;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.client.JerseyClientBuilder;
@@ -29,6 +30,7 @@ public class QuestionService extends Service<QuestionConfiguration> {
                 .build();		    
 		
 		env.addResource(new QuestionResource(client, config.getNamedEntityRecognitionURL(), config.getSparqlEndpointURL(), config.getQuepyURL()));
+		env.addFilter(new CorsHeadersFilter(), "/*");
 
 	}
 

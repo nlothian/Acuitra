@@ -1,5 +1,6 @@
 package com.acuitra.stages.answer;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -34,11 +35,11 @@ public class SPARQLQueryStage extends AbstractAnswerStage {
 	@Override
 	public void execute() {
 		
-		Map<String,String> input = getContext().getInput();
+		Map<String,List<String>> input = getContext().getInput();
 		
 		
-		String target = input.get(ExtractTaggedEntityWordStage.class.getName() + "NNP");
-		String predicate = input.get(RequestedWordToRDFPredicate.class.getName());
+		String target = input.get(ExtractTaggedEntityWordStage.class.getName() + "NNP").get(0);
+		String predicate = input.get(RequestedWordToRDFPredicate.class.getName()).get(0);
 		
 		Client jerseyClient = ((ContextWithJerseyClient) getContext()).getJerseyClient();		
 

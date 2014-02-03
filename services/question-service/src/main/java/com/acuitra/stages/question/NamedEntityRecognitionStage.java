@@ -1,5 +1,8 @@
 package com.acuitra.stages.question;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.acuitra.pipeline.Context;
@@ -15,7 +18,6 @@ public class NamedEntityRecognitionStage extends AbstractQuestionStage {
 
 	private ContextWithJerseyClient<String> context;
 	private Question question;
-	private String output;
 	private String namedEntityRecognitionURL;	
 
 	public NamedEntityRecognitionStage(String namedEntityRecognitionURL) {
@@ -24,7 +26,7 @@ public class NamedEntityRecognitionStage extends AbstractQuestionStage {
 	}
 
 	@Override
-	public void loadContext(Context<Question, String> ctx) {
+	public void loadContext(Context<Question, List<String>> ctx) {
 		this.question = ctx.getInput();
 		
 		this.context =  (ContextWithJerseyClient) ctx;		
@@ -44,7 +46,10 @@ public class NamedEntityRecognitionStage extends AbstractQuestionStage {
 		String text = response.getEntity(String.class);
 		System.out.println(text);
 		
-		this.setOutput(text);			
+		List<String> outputs = new ArrayList<>();
+		outputs.add(text);
+		
+		this.setOutput(outputs);			
 	}
 
 

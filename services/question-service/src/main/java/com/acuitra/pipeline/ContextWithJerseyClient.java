@@ -1,8 +1,10 @@
 package com.acuitra.pipeline;
 
+import java.util.List;
+
 import com.sun.jersey.api.client.Client;
 
-public class ContextWithJerseyClient<T> extends Context<T, String> {
+public class ContextWithJerseyClient<T> extends Context<T, List<String>> {
 	final private Client jerseyClient;
 	
 	public ContextWithJerseyClient(Client jerseyClient) {

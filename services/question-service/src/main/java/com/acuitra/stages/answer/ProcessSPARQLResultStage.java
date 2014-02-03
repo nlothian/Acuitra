@@ -1,6 +1,8 @@
 package com.acuitra.stages.answer;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,16 +19,24 @@ public class ProcessSPARQLResultStage extends AbstractAnswerStage {
 	@Override
 	public void execute() {
 		
-		String sparqlResult = getContext().getPreviousOutput(RunSPARQLQueryStage.class.getName());
+		// this only deals with the first SPARQL query returned
+		String sparqlResult = getContext().getPreviousOutput(RunSPARQLQueryStage.class.getName()).get(0);
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			JsonNode rootNode = mapper.readTree(sparqlResult);
 			String var = rootNode.path("head").path("vars").get(0).asText();
 			
-			// Note that we could have multiple answers (or the answer could be a list) and this only extracts the first result
-			String result = rootNode.path("results").path("bindings").path(0).path(var).path("value").asText();
 			
-			setOutput(result);
+			int answerCount = rootNode.path("results").path("bindings").size();
+			List<String> answers = new ArrayList<String>();
+			
+			for (int i = 0; i < answerCount; i++) {
+				answers.add(rootNode.path("results").path("bindings").path(i).path(var).path("value").asText());
+			}
+			
+			
+			
+			setOutput(answers);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

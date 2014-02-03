@@ -1,29 +1,32 @@
 package com.acuitra.stages.question;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.acuitra.pipeline.Context;
 import com.acuitra.pipeline.Stage;
 import com.acuitra.question.core.Question;
 
-public abstract class AbstractQuestionStage implements Stage<Question, String> {
+public abstract class AbstractQuestionStage implements Stage<Question, List<String>> {
 
-	private Context<Question, String> context;
+	private Context<Question, List<String>> context;
 
-	private String output;
+	private List<String> output = new ArrayList<>();
 
-	protected Context<Question, String> getContext() {
+	protected Context<Question, List<String>> getContext() {
 		return context;
 	}
 	
 	
 	@Override
-	public void loadContext(Context<Question, String> ctx) {
+	public void loadContext(Context<Question, List<String>> ctx) {
 		this.context =  ctx;
 		
 	}
 
 
 	@Override
-	public String getOutput() {
+	public List<String> getOutput() {
 		return output;
 	}
 
@@ -34,8 +37,13 @@ public abstract class AbstractQuestionStage implements Stage<Question, String> {
 	}
 
 
-	protected void setOutput(String output) {
+	protected void setOutput(List<String> output) {
 		this.output = output;
 	}
+	
+	protected void setOutput(String output) {
+		this.output.add(output);
+	}
+
 
 }

@@ -1,20 +1,22 @@
 package com.acuitra.question.core;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Answer {	
-	private String answer;
+	private List<String> answers = new ArrayList<>();
 	private Question question;
 	private String errorMessage;
 	
 	private Map<String, Object> debugInfo = new HashMap<>();
 	
-	public String getAnswer() {
-		return answer;
+	public List<String> getAnswers() {
+		return answers;
 	}
-	public void setAnswer(String answer) {
-		this.answer = answer;
+	public void setAnswer(List<String> answers) {
+		this.answers = answers;
 	}
 	public Question getQuestion() {
 		return question;
@@ -30,7 +32,7 @@ public class Answer {
 		this.debugInfo.put(key, value);
 	}
 	
-	public void addDebugInfo(Map<String, String> debug) {
+	public void addDebugInfo(Map<String, List<String>> debug) {
 		this.debugInfo.putAll(debug);
 	}
 	

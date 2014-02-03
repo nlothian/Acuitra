@@ -1,6 +1,8 @@
 package com.acuitra.stages.question;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -8,7 +10,6 @@ import com.acuitra.pipeline.Context;
 import com.acuitra.pipeline.ContextWithJerseyClient;
 import com.acuitra.question.core.Question;
 import com.acuitra.stages.StageException;
-import com.acuitra.stages.answer.ProcessSPARQLResultStage;
 import com.acuitra.stages.answer.RunSPARQLQueryStage;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,7 +37,7 @@ public class QuepyStage extends AbstractQuestionStage {
 	}	
 
 	@Override
-	public void loadContext(Context<Question, String> ctx) {
+	public void loadContext(Context<Question, List<String>> ctx) {
 		this.question = ctx.getInput();
 		
 		this.context =  (ContextWithJerseyClient) ctx;		
@@ -70,7 +71,9 @@ public class QuepyStage extends AbstractQuestionStage {
 			String query = rootNode.path("query").asText();
 			
 			// set the query where the Run Query stage expects it
-			context.addOutput(RunSPARQLQueryStage.EXPECTED_INPUT_NAME, query);
+			List<String> queries = new ArrayList<>();
+			queries.add(query);
+			context.addOutput(RunSPARQLQueryStage.EXPECTED_INPUT_NAME, queries);
 			
 			setOutput(text);
 		} catch (IOException e) {

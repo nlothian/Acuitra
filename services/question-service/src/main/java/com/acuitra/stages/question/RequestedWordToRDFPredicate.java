@@ -4,7 +4,7 @@ public class RequestedWordToRDFPredicate extends AbstractQuestionStage {
 
 	@Override
 	public void execute() {
-		String word = getContext().getPreviousOutput(ExtractTaggedEntityWordStage.class.getName() + "NN");
+		String word = getContext().getPreviousOutput(ExtractTaggedEntityWordStage.class.getName() + "NN").get(0);
 		System.out.println(word);
 		
 		String targettedWord = word.toUpperCase();

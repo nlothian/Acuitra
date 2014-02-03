@@ -1,5 +1,6 @@
 package com.acuitra.stages.answer;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -27,9 +28,11 @@ public class RunSPARQLQueryStage extends AbstractAnswerStage {
 	
 	@Override
 	public void execute() {
-		Map<String,String> input = getContext().getInput();
+		Map<String,List<String>> input = getContext().getInput();
 		
-		String query = input.get(EXPECTED_INPUT_NAME);
+		
+		// note this only runs the first query
+		String query = input.get(EXPECTED_INPUT_NAME).get(0);
 		if (query == null || query.length() == 0) {
 			throw new StageException("Could not find query to run. Looked for key " + EXPECTED_INPUT_NAME);
 		}

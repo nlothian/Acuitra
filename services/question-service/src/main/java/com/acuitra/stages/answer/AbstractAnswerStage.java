@@ -1,25 +1,27 @@
 package com.acuitra.stages.answer;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import com.acuitra.pipeline.Context;
 import com.acuitra.pipeline.Stage;
 
-public abstract class AbstractAnswerStage implements Stage<Map<String, String>, String> {
+public abstract class AbstractAnswerStage implements Stage<Map<String, List<String>>, List<String>> {
 
-	private String output;
-	private Context<Map<String, String>, String> context;
+	private List<String> output = new ArrayList<String>();
+	private Context<Map<String, List<String>>, List<String>> context;
 
 
 	@Override
-	public void loadContext(Context<Map<String, String>, String> ctx) {
+	public void loadContext(Context<Map<String, List<String>>, List<String>> ctx) {
 		this.setContext(ctx);		
 	}
 
 
 
 	@Override
-	public String getOutput() {
+	public List<String> getOutput() {
 		return output;
 	}
 
@@ -31,15 +33,20 @@ public abstract class AbstractAnswerStage implements Stage<Map<String, String>, 
 
 
 	protected void setOutput(String output) {
+		this.output.add(output);
+	}
+	
+	protected void setOutput(List<String> output) {
 		this.output = output;
 	}
+	
 
-	protected Context<Map<String, String>, String> getContext() {
+	protected Context<Map<String, List<String>>, List<String>> getContext() {
 		return context;
 	}
 
 
-	protected void setContext(Context<Map<String, String>, String> context) {
+	protected void setContext(Context<Map<String, List<String>>, List<String>> context) {
 		this.context = context;
 	}
 

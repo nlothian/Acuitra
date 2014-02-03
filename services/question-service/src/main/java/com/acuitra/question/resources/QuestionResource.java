@@ -1,5 +1,7 @@
 package com.acuitra.question.resources;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.GET;
@@ -15,11 +17,7 @@ import com.acuitra.question.core.Question;
 import com.acuitra.stages.StageException;
 import com.acuitra.stages.answer.ProcessSPARQLResultStage;
 import com.acuitra.stages.answer.RunSPARQLQueryStage;
-import com.acuitra.stages.answer.SPARQLQueryStage;
-import com.acuitra.stages.question.ExtractTaggedEntityWordStage;
-import com.acuitra.stages.question.NamedEntityRecognitionStage;
 import com.acuitra.stages.question.QuepyStage;
-import com.acuitra.stages.question.RequestedWordToRDFPredicate;
 import com.sun.jersey.api.client.Client;
 import com.yammer.metrics.annotation.Timed;
 
@@ -47,7 +45,7 @@ public class QuestionResource {
 	public Answer ask(@QueryParam("question") String param) {
 		Answer answer = new Answer();
 		try {
-			Pipeline<Question, String> processQuestionPipeline = new Pipeline<>();		
+			Pipeline<Question, List<String>> processQuestionPipeline = new Pipeline<>();		
 			
 	//		processQuestionPipeline.addStage(new NamedEntityRecognitionStage(namedEntityRecognitionURL));
 	//		processQuestionPipeline.addStage(new ExtractTaggedEntityWordStage("NNP"));
@@ -65,19 +63,23 @@ public class QuestionResource {
 			processQuestionPipeline.execute(questionContext);
 			
 			
-			Pipeline<Map<String,String>, String> generateAnswerPipeline = new Pipeline<>();
-			ContextWithJerseyClient<Map<String,String>> answerContext = new  ContextWithJerseyClient<>(jerseyClient);
+			Pipeline<Map<String,List<String>>, List<String>> generateAnswerPipeline = new Pipeline<>();
+			ContextWithJerseyClient<Map<String,List<String>>> answerContext = new  ContextWithJerseyClient<>(jerseyClient);
 			answerContext.setInput(questionContext.getPreviousOutputs());
 			
 			//generateAnswerPipeline.addStage(new SPARQLQueryStage(sparqlEndpointURL));
 			generateAnswerPipeline.addStage(new RunSPARQLQueryStage(sparqlEndpointURL));
 			generateAnswerPipeline.addStage(new ProcessSPARQLResultStage());
 			
+			
+			
 			generateAnswerPipeline.execute(answerContext);
 			
 			
 	
 			answer.setQuestion(question);
+			//List answers = new ArrayList<>();
+			//answers.add(e)
 			answer.setAnswer(answerContext.getPreviousOutput(ProcessSPARQLResultStage.class.getName()));		
 			
 			answer.addDebugInfo(questionContext.getPreviousOutputs());

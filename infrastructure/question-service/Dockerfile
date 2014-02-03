@@ -1,3 +1,5 @@
+# BUILDAS sudo docker build -t question-service .
+
 FROM nlothian/mvn3
 MAINTAINER Nick Lothian nick.lothian@gmail.com
 

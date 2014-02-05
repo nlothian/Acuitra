@@ -2,6 +2,7 @@ package com.acuitra;
 
 
 import com.acuitra.location.resources.FindNearbyResource;
+import com.acuitra.location.resources.ResourceDetailsResource;
 import com.acuitra.question.resources.QuestionResource;
 import com.acuitra.servlet.filter.CorsHeadersFilter;
 import com.sun.jersey.api.client.Client;
@@ -35,6 +36,7 @@ public class QuestionService extends Service<ServiceConfiguration> {
 		
 		env.addResource(new QuestionResource(client, config.getNamedEntityRecognitionURL(), config.getSparqlEndpointURL(), config.getQuepyURL()));
 		env.addResource(new FindNearbyResource(client, config.getSparqlEndpointURL()));
+		env.addResource(new ResourceDetailsResource(client, config.getSparqlEndpointURL()));
 		
 		
 		env.addFilter(new CorsHeadersFilter(), "/*");

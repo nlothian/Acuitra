@@ -34,8 +34,6 @@ public class ProcessSPARQLResultStage extends AbstractAnswerStage {
 				answers.add(rootNode.path("results").path("bindings").path(i).path(var).path("value").asText());
 			}
 			
-			
-			
 			setOutput(answers);
 		} catch (IOException e) {
 			throw new RuntimeException(e);

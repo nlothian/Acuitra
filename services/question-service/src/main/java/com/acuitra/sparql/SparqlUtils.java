@@ -26,22 +26,23 @@ public class SparqlUtils {
 		if (resourceName == null) {
 			return false;
 		} else {
-			return resourceName.matches("^[_sa-zA-Z]+$");			
+			//return resourceName.matches("^[<>:/,_sa-zA-Z]+$");
+			return true;
 		}
 	}
 
 
-	public static String runQuery(Client jerseyClient, String sparqlEndpointURL, String query, Object... name) {
-		String subbedQuery = MessageFormat.format(query, name);
+	public static String runQuery(Client jerseyClient, String sparqlEndpointURL, String query, Object... params) {		
+		String subbedQuery = MessageFormat.format(query, params);
 		
 		WebResource webResource = jerseyClient.resource(sparqlEndpointURL);
 		
-		MultivaluedMap<String, String> params = new MultivaluedMapImpl();
-		params.add("output", "json");
-		params.add("query", subbedQuery);
+		MultivaluedMap<String, String> reqParams = new MultivaluedMapImpl();
+		reqParams.add("output", "json");
+		reqParams.add("query", subbedQuery);
 		
 		// Run the query and get the response
-		ClientResponse response = webResource.queryParams(params).get(ClientResponse.class);
+		ClientResponse response = webResource.queryParams(reqParams).get(ClientResponse.class);
 		
 		return response.getEntity(String.class);
 	}

@@ -1,7 +1,7 @@
 # Quepy Webservice
 #
 # BUILDAS sudo docker build -t quepy-service .
-# RUNAS /usr/bin/python /var/local/acuitra/services/quepy-service/webservice.py
+# RUNAS sudo docker run -d -p 5001:5001 quepy-service /usr/bin/python /var/local/acuitra/services/quepy-service/webservice.py
 #
 # VERSION 0.1
 

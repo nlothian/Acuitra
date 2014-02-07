@@ -9,20 +9,21 @@ Use this script to drive the question-service
 
 OPTIONS
   -h		Show this message
-  -u		Update source via Git, then rebuild
+  -u		Update source by copying from host, then rebuild
   -r		Run the service
 EOF
 }
 
 update() {
-	cd $QUESTION_SERVICE_HOME
-	git pull
+    mkdir -p /tmp/acuitra/services/question-service
+    cp -r $QUESTION_SERVICE_HOME/* /tmp/acuitra/services/question-service/
+    cd /tmp/acuitra/services/question-service/
 	mvn3 package
 }
 
 run() {
 	update
-	cd $QUESTION_SERVICE_HOME
+	cd /tmp/acuitra/services/question-service
 	java -jar ./target/acuitra-0.0.1-SNAPSHOT.jar server question-service.yaml
 }
 
@@ -37,7 +38,7 @@ do
              update
              ;;
          r)
-             run             
+             run
              ;;
      esac
 done

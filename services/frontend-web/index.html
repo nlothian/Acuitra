@@ -67,101 +67,117 @@
 </head>
 <body ng-cloak>
 
-  
-  <div class="container" ng-controller="QuestionCtrl">
-  
-    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-        <div navbar-collapse collapse>
-          <form class="navbar-form" role="search">
-              <input id="question-input" type="text" class="form-control" placeholder="Ask a question" ng-model="questionbox.question" ng-keypress="keyPressed($event)">
-          </form>
-        </div>        
-    </nav>
+  <div id="wrap">
+    <div class="container" ng-controller="QuestionCtrl">
     
-    <div class="row">
-    
-        <div class="col-md-12">
-          <div ng-show="model.inprogress" class="alert alert-info fadeinout">
-            <span class="glyphicon glyphicon-refresh"></span>
-          </div>
-        </div>        
-        <div class="col-md-12" ng-show="model.response"> 
-            <div class="panel panel-default">
-              <div ng-show="!model.response.errorMessage" class="panel-heading">
-                <h2 class="panel-title">{{model.response.question.question}}</h2>
-              </div>
-              <div class="panel-body">
-                <div ng-show="model.response.errorMessage">
-                  <p class="pull-left text-warning">{{model.response.errorMessage}}</p>                  
-                  <a  type="button" class="btn btn-info pull-right" href="https://github.com/nlothian/Acuitra/wiki/Error:-{{model.response.errorCode}}">Fix this problem</a>
-                </div>
-                            
-
-                <div ng-show="model.noAnswerFound && !model.response.errorMessage">               
-                  <p class="pull-left text-warning">Sorry, could not find an answer.</p>
-                  <a  type="button" class="btn btn-info pull-right" href="https://github.com/nlothian/Acuitra/wiki/Error:-Could-not-find-an-answer">Fix this problem</a>
-                </div>
-                <div ng-show="!model.noAnswerFound && !model.response.errorMessage" ng-repeat="answer in model.response.answers">
-                  <h4 >{{answer}}</h4>                  
-                </div>
-              </div>
+      <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+          <div navbar-collapse collapse>
+            <form class="navbar-form" role="search">
+                <input id="question-input" type="text" class="form-control" placeholder="Ask a question" ng-model="questionbox.question" ng-keypress="keyPressed($event)">
+            </form>
+          </div>        
+      </nav>
+      
+      <div class="row">
+      
+          <div class="col-md-12">
+            <div ng-show="model.inprogress" class="alert alert-info fadeinout">
+              <span class="glyphicon glyphicon-refresh"></span>
             </div>
-        </div>
-        
-        <div class="col-md-12">
-          <div class="panel panel-default">
-              <div class="panel-heading">
-                <div class="panel-title">
-                  Sample questions
-                  <button type="button" class="btn btn-default btn-xs pull-right" ng-click="hideSamples = !hideSamples">
-                      <span ng-hide="hideSamples" class="glyphicon glyphicon-chevron-down"></span>
-                      <span ng-hide="!hideSamples" class="glyphicon glyphicon-chevron-up"></span>
-                  </button>                
+          </div>        
+          <div class="col-md-12" ng-show="model.response"> 
+              <div class="panel panel-default">
+                <div ng-show="!model.response.errorMessage" class="panel-heading">
+                  <h2 class="panel-title">{{model.response.question.question}}</h2>
                 </div>
-              </div>              
-              <div ng-hide="hideSamples" class="panel-body">
-                <li>What is the capital of Mongolia?</li>
-                <li>Who is Barack Obama?</li>
-                <li>Who is the president of Argentina?</li>
-                <li>How many people live in Italy?</li>
-                <li>Who are the members of Daft Punk?</li>
-                <li>What albums did Pearl Jam record?</li>
-                <li>which movies did Quentin Tarantino direct?</li>
-                <li>In what movies did Jennifer Garner appear?</li>
-                <li>Who starred in Fight Club?</li>
-                <li>Who directed Argo?</li>
-                <li>List books by Zadie Smith</li>
-              </div>
-              
-          </div>
-        </div>          
-        
-        <div class="col-md-12" ng-show="position"> 
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                <div class="panel-title">
-                  Near you currently
-                  <button type="button" class="btn btn-default btn-xs pull-right" ng-click="showNearby = !showNearby">
-                      <span ng-show="showNearby" class="glyphicon glyphicon-chevron-down"></span>
-                      <span ng-show="!showNearby" class="glyphicon glyphicon-chevron-up"></span>                    
-                  </button>                
-                </div>
-              </div>                        
-              <div ng-show="showNearby" class="panel-body">                                              
-                <div class="col-md-2" ng-repeat="resource in nearbyResourceAry">  
-                  <div class="thumbnail nearbydisplay" title="{{resource.results[0].description}}">                              
-                    <img ng-show="show" ng-src="{{resource.results[0].thumbnail}}" nearbythumbnail width="100px">                    
-                    <h4>{{resource.results[0].name}}</h4>                                        
+                <div class="panel-body">
+                  <div ng-show="model.response.errorMessage">
+                    <p class="pull-left text-warning">{{model.response.errorMessage}}</p>                  
+                    <a  type="button" class="btn btn-info pull-right" href="https://github.com/nlothian/Acuitra/wiki/Error:-{{model.response.errorCode}}">Fix this problem</a>
+                  </div>
+                              
+  
+                  <div ng-show="model.noAnswerFound && !model.response.errorMessage">               
+                    <p class="pull-left text-warning">Sorry, could not find an answer.</p>
+                    <a  type="button" class="btn btn-info pull-right" href="https://github.com/nlothian/Acuitra/wiki/Error:-Could-not-find-an-answer">Fix this problem</a>
+                  </div>
+                  <div ng-show="!model.noAnswerFound && !model.response.errorMessage" ng-repeat="answer in model.response.answers">
+                    <h4 >{{answer}}</h4>                  
                   </div>
                 </div>
-                
               </div>
+          </div>
+          
+          <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                  <div class="panel-title">
+                    Sample questions
+                    <button type="button" class="btn btn-default btn-xs pull-right" ng-click="hideSamples = !hideSamples">
+                        <span ng-hide="hideSamples" class="glyphicon glyphicon-chevron-down"></span>
+                        <span ng-hide="!hideSamples" class="glyphicon glyphicon-chevron-up"></span>
+                    </button>                
+                  </div>
+                </div>              
+                <div ng-hide="hideSamples" class="panel-body">
+                  <li>What is the capital of Mongolia?</li>
+                  <li>Who is Barack Obama?</li>
+                  <li>Who is the president of Argentina?</li>
+                  <li>How many people live in Italy?</li>
+                  <li>Who are the members of Daft Punk?</li>
+                  <li>What albums did Pearl Jam record?</li>
+                  <li>which movies did Quentin Tarantino direct?</li>
+                  <li>In what movies did Jennifer Garner appear?</li>
+                  <li>Who starred in Fight Club?</li>
+                  <li>Who directed Argo?</li>
+                  <li>List books by Zadie Smith</li>
+                </div>
+                
             </div>
-        </div>        
-        
+          </div>          
+          
+          <div class="col-md-12" ng-show="position"> 
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <div class="panel-title">
+                    Near you currently
+                    <button type="button" class="btn btn-default btn-xs pull-right" ng-click="showNearby = !showNearby">
+                        <span ng-show="showNearby" class="glyphicon glyphicon-chevron-down"></span>
+                        <span ng-show="!showNearby" class="glyphicon glyphicon-chevron-up"></span>                    
+                    </button>                
+                  </div>
+                </div>                        
+                <div ng-show="showNearby" class="panel-body">                                              
+                  <div class="col-md-2" ng-repeat="resource in nearbyResourceAry">  
+                    <div class="thumbnail nearbydisplay" title="{{resource.results[0].description}}">                              
+                      <img ng-show="show" ng-src="{{resource.results[0].thumbnail}}" nearbythumbnail width="100px">                    
+                      <h4>{{resource.results[0].name}}</h4>                                        
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+          </div>        
+          
+      </div>  
+    
     </div>
-  
   </div>
+  
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">
+      <span class="pull-left"><a href="https://github.com/nlothian/Acuitra/">Acuitra</a> &copy <a href="http://twitter.com/nlothian">Nick Lothian</a>.</span> 
+      <span class="pull-right">
+        Content credit and thanks to the <a href="http://en.wikipedia.org/wiki/Wikipedia:Reusing_Wikipedia_content">Wikipedia</a> volunteers via <a href="http://dbpedia.org">DBpedia</a>.
+        Thanks to the <a href="https://github.com/nlothian/Acuitra/wiki/Credit:-Projects">many other projects</a> this relies on.  
+      </span>  
+      </p>
+    </div>
+  </div>  
+  
+
+  
 </body>
 
 </html>

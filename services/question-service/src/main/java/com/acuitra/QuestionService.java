@@ -31,8 +31,8 @@ public class QuestionService extends Service<ServiceConfiguration> {
                 .using(env)            
                 .build();	
 	    
-	    client.setReadTimeout(10000);
-	    client.setConnectTimeout(10000);
+	    client.setReadTimeout(100000);
+	    client.setConnectTimeout(100000);
 		
 		env.addResource(new QuestionResource(client, config.getNamedEntityRecognitionURL(), config.getSparqlEndpointURL(), config.getQuepyURL()));
 		env.addResource(new FindNearbyResource(client, config.getSparqlEndpointURL()));

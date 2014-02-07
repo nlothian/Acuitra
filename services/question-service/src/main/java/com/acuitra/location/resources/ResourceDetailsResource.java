@@ -6,6 +6,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.acuitra.ErrorCodes;
 import com.acuitra.sparql.SparqlUtils;
 import com.sun.jersey.api.client.Client;
 import com.yammer.metrics.annotation.Timed;
@@ -60,7 +61,7 @@ public class ResourceDetailsResource {
 						
 			
 		} else {
-			return "{\"error\" : \"Invalid resource name\"}";
+			return "{\"error\" : \"Invalid resource name\", \"errorCode\" : \"" + ErrorCodes.INVALID_RESOURCE + "\"}";
 			
 		}
 

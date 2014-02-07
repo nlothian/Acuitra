@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import com.acuitra.ErrorCodes;
 import com.acuitra.pipeline.ContextWithJerseyClient;
 import com.acuitra.stages.StageException;
 import com.sun.jersey.api.client.Client;
@@ -34,7 +35,7 @@ public class RunSPARQLQueryStage extends AbstractAnswerStage {
 		// note this only runs the first query
 		String query = input.get(EXPECTED_INPUT_NAME).get(0);
 		if (query == null || query.length() == 0) {
-			throw new StageException("Could not find query to run. Looked for key " + EXPECTED_INPUT_NAME);
+			throw new StageException("Could not find query to run. Looked for key " + EXPECTED_INPUT_NAME, ErrorCodes.INTERNAL_ERROR);
 		}
 		Client jerseyClient = ((ContextWithJerseyClient) getContext()).getJerseyClient();
 		WebResource webResource = jerseyClient.resource(sparqlEndpointURL);

@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import com.acuitra.ErrorCodes;
 import com.acuitra.pipeline.Context;
 import com.acuitra.pipeline.ContextWithJerseyClient;
 import com.acuitra.question.core.Question;
@@ -57,14 +58,14 @@ public class QuepyStage extends AbstractQuestionStage {
 		ClientResponse response = webResource.queryParams(params).type("application/x-www-form-urlencoded").get(ClientResponse.class);
 
 		String text = response.getEntity(String.class);
-		System.out.println(text);
+		//System.out.println(text);
 		
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			JsonNode rootNode = mapper.readTree(text);
 			String errorMessage = rootNode.path("error").asText();
 			if (!"".equals(errorMessage)) {
-				throw new StageException(errorMessage);
+				throw new StageException(errorMessage, ErrorCodes.COULD_NOT_UNDERSTAND_QUESTION);
 			}
 			
 			// Note that we could have multiple answers (or the answer could be a list) and this only extracts the first result

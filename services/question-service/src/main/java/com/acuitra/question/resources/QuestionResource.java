@@ -87,6 +87,7 @@ public class QuestionResource {
 			
 		} catch(StageException e) {
 			answer.setErrorMessage(e.getLocalizedMessage());
+			answer.setErrorCode(e.getErrorCode());
 		}
 		
 		return answer;

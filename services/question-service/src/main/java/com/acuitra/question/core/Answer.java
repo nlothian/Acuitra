@@ -9,6 +9,7 @@ public class Answer {
 	private List<String> answers = new ArrayList<>();
 	private Question question;
 	private String errorMessage;
+	private String errorCode;
 	
 	private Map<String, Object> debugInfo = new HashMap<>();
 	
@@ -45,6 +46,12 @@ public class Answer {
 
 	public boolean isError() {
 		return (errorMessage != null);
+	}
+	public String getErrorCode() {
+		return errorCode;
+	}
+	public void setErrorCode(String errorCode) {
+		this.errorCode = errorCode;
 	}
 	
 }

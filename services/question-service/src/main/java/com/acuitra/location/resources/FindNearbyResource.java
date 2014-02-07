@@ -37,7 +37,7 @@ public class FindNearbyResource {
 		builder.append("PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ");
 		builder.append("PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> ");
 		builder.append("PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ");
-		builder.append("SELECT ?resource ?label WHERE '{' ");
+		builder.append("SELECT DISTINCT ?resource ?label WHERE '{' ");
 		builder.append("	?resource rdfs:label ?label. ");
 		builder.append("	?resource geo:lat ?targetLat. ");
 		builder.append("	?resource geo:long ?targetLong. ");

@@ -55,7 +55,7 @@ public class ResourceDetailsResource {
 			
 			String output = SparqlUtils.runQuery(jerseyClient, sparqlEndpointURL, builder.toString(), subbedName);
 			
-			System.out.println(output);
+			//System.out.println(output);
 			
 			return SparqlUtils.sparqlResultSetToJsonTable(output);
 						

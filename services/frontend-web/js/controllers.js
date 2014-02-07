@@ -31,15 +31,22 @@ angular.module('acuitra.controllers', []).
   
     $scope.model = {};
     $scope.keyPressed = function(ev) {
+      
       if (ev.which==13) {        
-        //console.log(questionService.ask($scope.questionbox.question));
+        // When enter is pressed  
+        $scope.hideSamples = true;
 
         $scope.model.inprogress = true;
 
+        // Ask the question
         $http({method: 'GET', url: configService.get().questionServiceUrl + $scope.questionbox.question}).
           success(function(data, status, headers, config) {
+            // get the answer        
             $scope.model.inprogress = false;
             $scope.model.response = data;
+            if (data.answers && data.answers.length == 0) {
+              $scope.model.noAnswerFound = true;
+            }
           }).
           error(function(data, status, headers, config) {
             $scope.model.inprogress = false;
@@ -50,7 +57,7 @@ angular.module('acuitra.controllers', []).
     }
     
     $scope.getNearbyResources = function(position) {      
-      $http({method: 'GET', url: configService.get().nearbyServiceUrl + "?longitude=" + position.coords.longitude + "&latitude=" + position.coords.latitude + "&maxResult=6"}).
+      $http({method: 'GET', url: configService.get().nearbyServiceUrl + "?longitude=" + position.coords.longitude + "&latitude=" + position.coords.latitude + "&maxResults=6"}).
         success(function(data, status, headers, config) {          
           $scope.nearby = data;       
           
@@ -62,7 +69,8 @@ angular.module('acuitra.controllers', []).
               var resource = encodeURIComponent("<" + value.resource.value + ">")
               $http.get(configService.get().resourceDetailsServiceUrl + resource + "/basic").success(function(data) {
                 //console.log(data);
-                $scope.nearbyResourceAry.push(data);               
+                $scope.nearbyResourceAry.push(data); 
+                $scope.showNearby = true;              
               });
             }
           });              

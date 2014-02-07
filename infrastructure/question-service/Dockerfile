@@ -1,22 +1,25 @@
 # BUILDAS sudo docker build -t question-service .
+# RUNAS sudo docker run -d -p 8080:8080 -v ~/Acuitra/:/var/local/acuitra question-service /var/local/acuitra/services/question-service/question-service.sh -r
 
 FROM nlothian/mvn3
 MAINTAINER Nick Lothian nick.lothian@gmail.com
 
+ENV QUESTION_SERVICE_HOME /var/local/acuitra/services/question-service
 
 # GIT
 RUN apt-get -y install git
 
 
+# We download and build the question service, to prep the Maven cache as part of the Docker build
+# The we throw away the build we just did. Yes, this is weird
 # Get the service
-ENV QUESTION_SERVICE_HOME /var/local/acuitra/services/question-service
 
-RUN mkdir -p /var/local/acuitra
-RUN git init /var/local/acuitra/
-RUN cd /var/local/acuitra;git remote add -f origin https://github.com/nlothian/Acuitra.git
-RUN cd /var/local/acuitra;git config core.sparseCheckout true
-RUN cd /var/local/acuitra;echo services/question-service/*> .git/info/sparse-checkout
-RUN cd /var/local/acuitra;git checkout master
+RUN mkdir -p /tmp/acuitra
+RUN git init /tmp/acuitra/
+RUN cd /tmp/acuitra;git remote add -f origin https://github.com/nlothian/Acuitra.git
+RUN cd /tmp/acuitra;git config core.sparseCheckout true
+RUN cd /tmp/acuitra;echo services/question-service/*> .git/info/sparse-checkout
+RUN cd /tmp/acuitra;git checkout master
 
-RUN cd /var/local/acuitra/services/question-service;mvn3 package
-# RUN java -jar /var/local/acuitra/services/question-service/target/acuitra-0.0.1-SNAPSHOT.jar server /var/local/acuitra/services/question-service/question-service.yaml
+RUN cd /tmp/acuitra/services/question-service;mvn3 package
+RUN rm -rf /tmp/acuitra

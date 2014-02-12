@@ -1,6 +1,9 @@
 package com.acuitra;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.acuitra.location.resources.FindNearbyResource;
 import com.acuitra.location.resources.ResourceDetailsResource;
 import com.acuitra.question.resources.QuestionResource;
@@ -12,6 +15,7 @@ import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
 
 public class QuestionService extends Service<ServiceConfiguration> {
+		
 
     public static void main(String[] args) throws Exception {
         new QuestionService().run(args);
@@ -26,6 +30,10 @@ public class QuestionService extends Service<ServiceConfiguration> {
 
 	@Override
 	public void run(ServiceConfiguration config, Environment env) throws Exception {
+		
+		Logger logger = LoggerFactory.getLogger(this.getClass());
+		logger.info("quepyURL: " + config.getQuepyURL());
+		logger.info("sparqlEndpointURL: " + config.getSparqlEndpointURL());
 		
 	    final Client client = new JerseyClientBuilder().using(config.getJerseyClientConfiguration())
                 .using(env)            

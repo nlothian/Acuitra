@@ -1,5 +1,5 @@
 # BUILDAS sudo docker build -t question-service .
-# RUNAS sudo docker run -d -p 8080:8080 -v ~/Acuitra/:/var/local/acuitra question-service /var/local/acuitra/services/question-service/question-service.sh -r
+# RUNAS sudo docker run -d -p 8080:8080 -v ~/Acuitra/:/var/local/acuitra -link dbpedia_sparql:dbpedia_sparql -link quepy:quepy -name question-service question-service
 
 FROM nlothian/mvn3
 MAINTAINER Nick Lothian nick.lothian@gmail.com
@@ -23,3 +23,9 @@ RUN cd /tmp/acuitra;git checkout master
 
 RUN cd /tmp/acuitra/services/question-service;mvn3 package
 RUN rm -rf /tmp/acuitra
+
+EXPOSE 8080
+
+CMD ["/var/local/acuitra/services/question-service/question-service.sh", "-r"]
+
+ENTRYPOINT ["/bin/bash"]

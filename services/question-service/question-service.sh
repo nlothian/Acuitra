@@ -24,7 +24,16 @@ update() {
 run() {
 	update
 	cd /tmp/acuitra/services/question-service
-	java -jar ./target/acuitra-0.0.1-SNAPSHOT.jar server question-service.yaml
+
+    JAVA_OPTS=
+    if [  "$DBPEDIA_SPARQL_PORT_3030_TCP_PROTO" ] ; then
+        JAVA_OPTS="$JAVA_OPTS "-Ddw.sparqlEndpointURL=http://"$DBPEDIA_SPARQL_PORT_3030_TCP_ADDR":"$DBPEDIA_SPARQL_PORT_3030_TCP_PORT"/dbpedia/query
+    fi
+    if [  "$QUEPY_PORT_5001_TCP_PROTO" ] ; then
+        JAVA_OPTS="$JAVA_OPTS "-Ddw.quepyURL=http://"$QUEPY_PORT_5001_TCP_ADDR":"$QUEPY_PORT_5001_TCP_PORT"/question
+    fi
+
+	java $JAVA_OPTS -jar ./target/acuitra-0.0.1-SNAPSHOT.jar server question-service.yaml
 }
 
 while getopts "hur" OPTION

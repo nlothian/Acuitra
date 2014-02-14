@@ -10,9 +10,17 @@ Docker gives a nice API
 
 ## How?
 
-ZeroVM has some dependencies which are not available via apt-get in Ubunutu. The build script will fetch them and build the Docker image
+### Pull
+
+'''
+sudo docker pull nlothian/zerovm_python
+'''
+
 
 ### Build
+
+ZeroVM has some dependencies which are not available via apt-get in Ubunutu. The build script will fetch them and build the Docker image
+
 
 ```
 ./build.sh
@@ -32,7 +40,7 @@ You can map a host directory to Docker, and then run python scripts from that
 ```
 $sudo docker run -i -t -v /home/nick/Acuitra/infrastructure/base-images/zerovm-python/scripts/:/scripts/ zerovm_python @/scripts/ls.py /lib
 ['/lib/python2.7', '/lib/pkgconfig', '/lib/libpython2.7.a']
-````
+```
 
 ### Limitations
 

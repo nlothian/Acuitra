@@ -1,7 +1,7 @@
 # Ubuntu 12.04 (precise) + ZeroVM + Python
 #
 # BUILDAS sudo docker build -t zerovm_python .
-# RUNAS sudo docker -i -t zerovm_python <python file>
+# RUNAS sudo docker -i -t run zerovm_python <python file>
 #
 
 FROM ubuntu
@@ -34,8 +34,6 @@ RUN apt-get -y install zerovm
 
 RUN apt-get -y install zerovm-cli
 
-#ENTRYPOINT ["/bin/bash"]
-#CMD ["/opt/zerovm/internal_runzerovm.sh"]
 
 CMD ["@/opt/zerovm/helloworld.py"]
 ENTRYPOINT ["sudo", "-u", "zerovmuser", "zvsh", "--zvm-image", "/opt/zerovm/python.tar", "python"]

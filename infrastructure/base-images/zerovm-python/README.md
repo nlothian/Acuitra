@@ -2,6 +2,8 @@
 
 This Dockerfile will let you run Python inside a [ZeroVM](http://zerovm.org/) VM inside a [Docker](http://docker.io) container.
 
+See also [Sympy on ZeroVM on Docker](https://github.com/nlothian/Acuitra/tree/master/infrastructure/base-images/zerovm_sympy)
+
 ## Why?
 
 ZeroVM gives a fairly secure sandbox using the [Chromium NaCl](http://www.chromium.org/nativeclient) container, letting you run untrusted code with a degree of confidence
@@ -46,4 +48,4 @@ $sudo docker run -i -t -v /home/nick/Acuitra/infrastructure/base-images/zerovm-p
 
 * This hasn't actually been security audited
 * Could use AppArmor to limit network usage
-* If you need other python libraries you'll need to package them separately and load them into ZeroVM
+* If you need other python libraries you'll need to package them separately and load them into ZeroVM. See [Sympy on ZeroVM on Docker](https://github.com/nlothian/Acuitra/tree/master/infrastructure/base-images/zerovm_sympy) for an example of this.

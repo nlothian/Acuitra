@@ -8,8 +8,10 @@ package com.acuitra;
  */
 public class ErrorCodes {
 	
-	public final static String INVALID_RESOURCE = "INVALID_RESOURCE";
+	public static final String INVALID_RESOURCE = "INVALID_RESOURCE";
 	public static final String INTERNAL_ERROR = "INTERNAL_ERROR";
 	public static final String COULD_NOT_UNDERSTAND_QUESTION = "COULD_NOT_UNDERSTAND_QUESTION";
+	public static final String PROCESSING_QUESTION_TIMEOUT = "PROCESSING_QUESTION_TIMEOUT";
+	public static final String GENERATING_ANSWERS_TIMEOUT = "GENERATING_ANSWERS_TIMEOUT";
 
 }

@@ -1,3 +1,0 @@
-namedEntityRecognitionURL: http://100.71.22.105:5000/ner
-quepyURL:  http://100.71.22.105:5001/question
-sparqlEndpointURL: http://100.71.22.105:3030/dbpedia/query

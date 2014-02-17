@@ -5,7 +5,6 @@ import java.util.LinkedList;
 public class Pipeline<T,O> {
 	private LinkedList<Stage<T,O>> stages = new LinkedList<Stage<T,O>>();
 	
-	private O output;
 	
 	public void addStage(Stage<T, O> stage) {
 		stages.add(stage);
@@ -22,10 +21,6 @@ public class Pipeline<T,O> {
 			
 		}
 	}
-		
-	public O getOutput() {
-		return output;
-		
-	}
+
 	
 }

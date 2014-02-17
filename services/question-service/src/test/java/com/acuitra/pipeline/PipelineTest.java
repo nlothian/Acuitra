@@ -8,40 +8,6 @@ import org.junit.Test;
 
 public class PipelineTest {
 
-	private final class TestStage implements Stage<LinkedList<Integer>, String> {
-		private Context<LinkedList<Integer>, String> ctx;
-		private int stageCount;
-		
-		public TestStage(int stageCount) {
-			this.stageCount = stageCount;
-		}
-
-
-
-		@Override
-		public void execute() {
-			LinkedList<Integer> list = ctx.getInput();
-			list.add(stageCount);			
-		}
-
-		@Override
-		public String getOutput() {
-			return "stage number " + stageCount;
-		}
-
-		@Override
-		public void loadContext(Context<LinkedList<Integer>, String> ctx) {
-			this.ctx = ctx;
-			
-		}
-
-
-		@Override
-		public String getKeyName() {
-			return String.valueOf(stageCount);
-		}
-	}
-
 	@Test
 	public void test() {
 		Pipeline<LinkedList<Integer>, String> pipeline = new Pipeline<>();

@@ -9,8 +9,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.acuitra.ErrorCodes;
 import com.acuitra.pipeline.ContextWithJerseyClient;
+import com.acuitra.pipeline.ParallelPipelineRunner;
 import com.acuitra.pipeline.Pipeline;
+import com.acuitra.pipeline.RunnablePipeline;
 import com.acuitra.question.core.Answer;
 import com.acuitra.question.core.Question;
 import com.acuitra.stages.StageException;
@@ -44,7 +47,14 @@ public class QuestionResource {
 	public Answer ask(@QueryParam("question") String param) {
 		Answer answer = new Answer();
 		try {
-			Pipeline<Question, List<String>> processQuestionPipeline = new Pipeline<>();		
+			
+			Question question = new Question(param);
+			
+			ContextWithJerseyClient<Question> questionContext = new  ContextWithJerseyClient<>(jerseyClient);
+			questionContext.setInput(question);
+			
+			
+			RunnablePipeline<Question, List<String>> processQuestionPipeline = new RunnablePipeline<>("Process Question Pipeline", questionContext);		
 			
 	//		processQuestionPipeline.addStage(new NamedEntityRecognitionStage(namedEntityRecognitionURL));
 	//		processQuestionPipeline.addStage(new ExtractTaggedEntityWordStage("NNP"));
@@ -54,26 +64,35 @@ public class QuestionResource {
 			processQuestionPipeline.addStage(new QuepyStage(quepyURL));
 			
 			
-			Question question = new Question(param);
+			ParallelPipelineRunner<Question, List<String>> questionRunner = new ParallelPipelineRunner<>(10000);
 			
-			ContextWithJerseyClient<Question> questionContext = new  ContextWithJerseyClient<>(jerseyClient);
-			questionContext.setInput(question);
+			questionRunner.addPipeline(processQuestionPipeline);
 			
-			processQuestionPipeline.execute(questionContext);
+			questionRunner.run(); // run the pipeline 
+			
+			if (!processQuestionPipeline.isComplete()) {
+				throw new StageException("Processing questions took too long", ErrorCodes.PROCESSING_QUESTION_TIMEOUT);			
+			}
 			
 			
-			Pipeline<Map<String,List<String>>, List<String>> generateAnswerPipeline = new Pipeline<>();
 			ContextWithJerseyClient<Map<String,List<String>>> answerContext = new  ContextWithJerseyClient<>(jerseyClient);
 			answerContext.setInput(questionContext.getPreviousOutputs());
+
+
+			ParallelPipelineRunner<Map<String,List<String>>, List<String>> answerGeneratorRunner = new ParallelPipelineRunner<>(10000);
 			
-			//generateAnswerPipeline.addStage(new SPARQLQueryStage(sparqlEndpointURL));
+			RunnablePipeline<Map<String,List<String>>, List<String>> generateAnswerPipeline = new RunnablePipeline<>("Generate Answers Pipelines", answerContext);
+						
 			generateAnswerPipeline.addStage(new RunSPARQLQueryStage(sparqlEndpointURL));
 			generateAnswerPipeline.addStage(new ProcessSPARQLResultStage());
 			
+			answerGeneratorRunner.addPipeline(generateAnswerPipeline);
 			
+			answerGeneratorRunner.run(); // run the pipeline
 			
-			generateAnswerPipeline.execute(answerContext);
-			
+			if (!generateAnswerPipeline.isComplete()) {
+				throw new StageException("Generating answers took too long", ErrorCodes.GENERATING_ANSWERS_TIMEOUT);			
+			}
 			
 	
 			answer.setQuestion(question);

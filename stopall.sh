@@ -2,7 +2,7 @@
 
 sudo docker stop dbpedia_sparql
 sudo docker stop quepy
-sudo docker stop named-entity-service
+sudo docker stop named_entity_service
 sudo docker stop question_service
 sudo docker stop acuitra_website
 

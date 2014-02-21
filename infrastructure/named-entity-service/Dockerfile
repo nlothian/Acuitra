@@ -1,38 +1,16 @@
 # NLTK REST Webservice
 #
 # VERSION 0.1
+# 
+# BUILDAS sudo docker build -t named-entity-service .
+# RUNAS sudo docker run -d -p 5000:5000 named-entity-service
 
 
-
-# Ubuntu 12.04
-FROM ubuntu:precise
+FROM nlothian/python-nltk
 MAINTAINER Nick Lothian nick.lothian@gmail.com
 
 # Expose port 5000
 expose 5000
-
-RUN apt-get update
-
-# Setup python
-RUN apt-get -y install build-essential python-dev
-RUN apt-get -y install python-setuptools
-RUN easy_install pip
-RUN pip install setuptools --no-use-wheel --upgrade
-RUN pip install -U numpy
-
-# NLTK requirements
-RUN pip install -U pyyaml nltk
-RUN /usr/bin/python -m nltk.downloader treebank
-RUN /usr/bin/python -m nltk.downloader words
-RUN /usr/bin/python -m nltk.downloader maxent_ne_chunker
-RUN /usr/bin/python -m nltk.downloader maxent_treebank_pos_tagger
-
-
-# Flask
-RUN pip install flask
-
-# GIT
-RUN apt-get -y install git
 
 
 # Get the service
@@ -46,6 +24,6 @@ RUN cd /var/local/acuitra;git checkout master
 # Run the service
 # RUN /usr/bin/python /var/local/acuitra/services/named-entity-service/named-entity-ws.py  
 
-
+CMD ["/usr/bin/python", "/var/local/acuitra/services/named-entity-service/named-entity-ws.py"]
 
   

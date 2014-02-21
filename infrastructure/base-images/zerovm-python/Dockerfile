@@ -16,9 +16,16 @@ RUN useradd zerovmuser
 
 ADD libpgm-5.1-0_5.1.118-1~dfsg-0.1ubuntu1_amd64.deb /opt/zerovm/libpgm-5.1-0_5.1.118-1~dfsg-0.1ubuntu1_amd64.deb
 ADD libzmq3_4.0.1-ubuntu1_amd64.deb /opt/zerovm/libzmq3_4.0.1-ubuntu1_amd64.deb
-ADD python.tar /opt/zerovm/python.tar
+
+# ADD python.tar /opt/zerovm/python.tar # prior to Docker 0.8 this would not uncompress the tar file
+# This is a work around
+ADD python.tar /opt/zerovm/pythondir
+RUN tar -cvf /opt/zerovm/python.tar -C /opt/zerovm/pythondir .
+
+
 ADD helloworld.py /opt/zerovm/helloworld.py
-ADD internal_runzerovm.sh /opt/zerovm/internal_runzerovm.sh
+
+RUN chown -R zerovmuser:zerovmuser /opt/zerovm # not clear why this is needed. May be due to work around above
 
 RUN dpkg -i /opt/zerovm/libpgm-5.1-0_5.1.118-1~dfsg-0.1ubuntu1_amd64.deb
 RUN dpkg -i /opt/zerovm/libzmq3_4.0.1-ubuntu1_amd64.deb
@@ -35,6 +42,6 @@ RUN apt-get -y install zerovm
 RUN apt-get -y install zerovm-cli
 
 
-CMD ["@/opt/zerovm/helloworld.py"]
-ENTRYPOINT ["sudo", "-u", "zerovmuser", "zvsh", "--zvm-image", "/opt/zerovm/python.tar", "python"]
+#CMD ["@/opt/zerovm/helloworld.py"]
+#ENTRYPOINT ["sudo", "-u", "zerovmuser", "zvsh", "--zvm-image", "/opt/zerovm/python.tar", "python"]
 

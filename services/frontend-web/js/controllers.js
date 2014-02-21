@@ -44,7 +44,7 @@ angular.module('acuitra.controllers', []).
             // get the answer        
             $scope.model.inprogress = false;
             $scope.model.response = data;
-            if (data.answers && data.answers.length == 0) {
+            if (data.length && data.length == 0) {
               $scope.model.noAnswerFound = true;
             }
           }).

@@ -33,7 +33,7 @@ run() {
         JAVA_OPTS="$JAVA_OPTS "-Ddw.quepyURL=http://"$QUEPY_PORT_5001_TCP_ADDR":"$QUEPY_PORT_5001_TCP_PORT"/question
     fi
     if [  "$NAMED_ENTITY_SERVICE_5000_TCP_PROTO" ] ; then
-        JAVA_OPTS="$JAVA_OPTS "-Ddw.quepyURL=http://"$NAMED_ENTITY_SERVICE_5000_TCP_ADDR":"$NAMED_ENTITY_SERVICE_5000_TCP_PORT"/ner
+        JAVA_OPTS="$JAVA_OPTS "-Ddw.namedEntityRecognitionURL=http://"$NAMED_ENTITY_SERVICE_5000_TCP_ADDR":"$NAMED_ENTITY_SERVICE_5000_TCP_PORT"/ner
     fi
 
 	java $JAVA_OPTS -jar ./target/acuitra-0.0.1-SNAPSHOT.jar server question-service.yaml

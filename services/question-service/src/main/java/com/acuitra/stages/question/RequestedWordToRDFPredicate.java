@@ -10,11 +10,11 @@ public class RequestedWordToRDFPredicate extends AbstractQuestionStage {
 		String targettedWord = word.toUpperCase();
 		
 		if ("CAPITAL".equals(targettedWord)) {
-			setOutput("<http://wifo5-04.informatik.uni-mannheim.de/factbook/ns#capital_name>");
+			setOutput("<http://dbpedia.org/ontology/capital>");
 		} else if ("AREA".equals(targettedWord)) {
-			setOutput("<http://wifo5-04.informatik.uni-mannheim.de/factbook/ns#area_total>");
+			setOutput("<http://dbpedia.org/property/areaKm>");
 		} else if ("POPULATION".equals(targettedWord)) {
-			setOutput("<http://wifo5-04.informatik.uni-mannheim.de/factbook/ns#literacy_totalpopulation>");
+			setOutput("<http://dbpedia.org/property/populationEstimate>");
 		}
 
 

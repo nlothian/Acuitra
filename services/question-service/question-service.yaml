@@ -1,4 +1,4 @@
 # Note that this configuration is overridden when running using default scripts inside Docker containers
-namedEntityRecognitionURL: http://127.0.0.1:5000/ner
+namedEntityRecognitionURL:  http://192.168.1.19:5000/ner
 quepyURL: http://192.168.1.19:5001/question
 sparqlEndpointURL: http://192.168.1.19:3030/dbpedia/query

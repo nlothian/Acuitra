@@ -2,16 +2,11 @@ package com.acuitra.stages.question;
 
 import java.io.IOException;
 
-import com.acuitra.pipeline.Context;
-import com.acuitra.pipeline.Stage;
-import com.acuitra.question.core.Question;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class ExtractTaggedEntityWordStage implements Stage<Question, String> {
+public class ExtractTaggedEntityWordStage extends AbstractQuestionStage {
 
-	private Context<Question, String> context;
-	private String output;
 	private String tag;
 
 	public ExtractTaggedEntityWordStage(String tag) {
@@ -20,19 +15,14 @@ public class ExtractTaggedEntityWordStage implements Stage<Question, String> {
 	}
 	
 	@Override
-	public void loadContext(Context<Question, String> ctx) {
-		this.context = ctx;
-	}
-
-	@Override
 	public void execute() {
-		String taggedQuestion = context.getPreviousOutput(NamedEntityRecognitionStage.class.getName());
+		String taggedQuestion = getContext().getPreviousOutput(NamedEntityRecognitionStage.class.getName()).get(0);
 		
 		ObjectMapper mapper = new ObjectMapper();
 		try {
-			JsonNode rootNode = mapper.readTree(taggedQuestion);
-			
-			this.output = findTaggedWord(rootNode);
+			JsonNode rootNode = mapper.readTree(taggedQuestion);			
+		
+			setOutput(findTaggedWord(rootNode));
 			
 			
 		} catch (IOException e) {
@@ -69,10 +59,6 @@ public class ExtractTaggedEntityWordStage implements Stage<Question, String> {
 		}
 	}
 
-	@Override
-	public String getOutput() {
-		return output;
-	}
 
 	@Override
 	public String getKeyName() {

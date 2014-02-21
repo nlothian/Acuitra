@@ -32,7 +32,8 @@ public class SparqlUtils {
 	}
 
 
-	public static String runQuery(Client jerseyClient, String sparqlEndpointURL, String query, Object... params) {		
+	public static String runQuery(Client jerseyClient, String sparqlEndpointURL, String query, Object... params) {	
+		
 		String subbedQuery = MessageFormat.format(query, params);
 		
 		WebResource webResource = jerseyClient.resource(sparqlEndpointURL);

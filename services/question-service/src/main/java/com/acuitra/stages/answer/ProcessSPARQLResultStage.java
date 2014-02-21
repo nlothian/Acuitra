@@ -14,18 +14,37 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  */
 public class ProcessSPARQLResultStage extends AbstractAnswerStage {
+	private String resultSetKey;
+	private String resultSetAnswerColumn; 
+	
+	public ProcessSPARQLResultStage(String resultSetKey) {
+		super();
+		
+		this.resultSetKey = resultSetKey;
+	}
 
+	public ProcessSPARQLResultStage(String resultSetKey, String resultSetAnswerColumn) {
+		super();
+		
+		this.resultSetKey = resultSetKey;
+		this.resultSetAnswerColumn = resultSetAnswerColumn;
+	}	
+	
 
 	@Override
 	public void execute() {
 		
 		// this only deals with the first SPARQL query returned
-		String sparqlResult = getContext().getPreviousOutput(RunSPARQLQueryStage.class.getName()).get(0);
+		String sparqlResult = getContext().getPreviousOutput(resultSetKey).get(0);
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			JsonNode rootNode = mapper.readTree(sparqlResult);
-			String var = rootNode.path("head").path("vars").get(0).asText();
-			
+			String var;
+			if (resultSetAnswerColumn == null) {
+				var = rootNode.path("head").path("vars").get(0).asText();
+			} else {
+				var = resultSetAnswerColumn;
+			}						
 			
 			int answerCount = rootNode.path("results").path("bindings").size();
 			List<String> answers = new ArrayList<String>();

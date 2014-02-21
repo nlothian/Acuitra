@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Context<T, O> {
+	private boolean error;
+	private RuntimeException exception = null;
+	
 	private T input;
 	private Map<String, O> previousOutputs = new HashMap<>();
 
@@ -30,5 +33,23 @@ public class Context<T, O> {
 	public void addOutput(String key, O output) {
 		previousOutputs.put(key, output);
 	}
+
+	public boolean isError() {
+		return error;
+	}
+
+	public void setError(boolean error) {
+		this.error = error;
+	}
+
+	public RuntimeException getException() {
+		return exception;
+	}
+
+	public void setException(RuntimeException exception) {
+		this.exception = exception;
+	}
+
+
 	
 }

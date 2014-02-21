@@ -39,7 +39,7 @@ public class SPARQLQueryStage extends AbstractAnswerStage {
 		
 		
 		String target = input.get(ExtractTaggedEntityWordStage.class.getName() + "NNP").get(0);
-		String predicate = input.get(RequestedWordToRDFPredicate.class.getName()).get(0);
+		//String predicate = input.get(RequestedWordToRDFPredicate.class.getName()).get(0);
 		
 		Client jerseyClient = ((ContextWithJerseyClient) getContext()).getJerseyClient();		
 
@@ -74,6 +74,7 @@ public class SPARQLQueryStage extends AbstractAnswerStage {
 		
 		StringBuilder builder = new StringBuilder();
 		builder.append("SELECT DISTINCT * WHERE { ");
+		builder.append(" ?city <http://dbpedia.org/property/name> ?answer . ");		
 		builder.append(" ?country a <http://dbpedia.org/ontology/Country> .");
 		builder.append(" ?city a <http://dbpedia.org/ontology/Place> .");
 		builder.append(" ?country <http://dbpedia.org/property/capital> ?city .");		
@@ -81,7 +82,7 @@ public class SPARQLQueryStage extends AbstractAnswerStage {
 		builder.append(" OPTIONAL{?country <http://dbpedia.org/property/yearEnd> ?end} . ");
 		builder.append(" ?country <http://dbpedia.org/property/commonName> ");		
 		builder.append("\"" + target + "\"@en");
-		builder.append("} ORDER BY ?end LIMIT 20 ");
+		builder.append("} ORDER BY ?end LIMIT 1 ");
 				
 		
 		

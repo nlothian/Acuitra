@@ -1,5 +1,6 @@
 package com.acuitra.question.resources;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,14 +13,12 @@ import javax.ws.rs.core.MediaType;
 import com.acuitra.ErrorCodes;
 import com.acuitra.pipeline.ContextWithJerseyClient;
 import com.acuitra.pipeline.ParallelPipelineRunner;
-import com.acuitra.pipeline.Pipeline;
 import com.acuitra.pipeline.RunnablePipeline;
 import com.acuitra.question.core.Answer;
 import com.acuitra.question.core.Question;
 import com.acuitra.stages.StageException;
-import com.acuitra.stages.answer.ProcessSPARQLResultStage;
-import com.acuitra.stages.answer.RunSPARQLQueryStage;
-import com.acuitra.stages.question.QuepyStage;
+import com.acuitra.stages.integrated.IntegratedQuepyStage;
+import com.acuitra.stages.integrated.NLPQueryStage;
 import com.sun.jersey.api.client.Client;
 import com.yammer.metrics.annotation.Timed;
 
@@ -44,73 +43,92 @@ public class QuestionResource {
 
 	@GET
 	@Timed
-	public Answer ask(@QueryParam("question") String param) {
-		Answer answer = new Answer();
-		try {
-			
-			Question question = new Question(param);
-			
-			ContextWithJerseyClient<Question> questionContext = new  ContextWithJerseyClient<>(jerseyClient);
-			questionContext.setInput(question);
-			
-			
-			RunnablePipeline<Question, List<String>> processQuestionPipeline = new RunnablePipeline<>("Process Question Pipeline", questionContext);		
-			
-	//		processQuestionPipeline.addStage(new NamedEntityRecognitionStage(namedEntityRecognitionURL));
-	//		processQuestionPipeline.addStage(new ExtractTaggedEntityWordStage("NNP"));
-	//		processQuestionPipeline.addStage(new ExtractTaggedEntityWordStage("NN"));
-	//		processQuestionPipeline.addStage(new RequestedWordToRDFPredicate());
-			
-			processQuestionPipeline.addStage(new QuepyStage(quepyURL));
-			
-			
-			ParallelPipelineRunner<Question, List<String>> questionRunner = new ParallelPipelineRunner<>(10000);
-			
-			questionRunner.addPipeline(processQuestionPipeline);
-			
-			questionRunner.run(); // run the pipeline 
-			
-			if (!processQuestionPipeline.isComplete()) {
-				throw new StageException("Processing questions took too long", ErrorCodes.PROCESSING_QUESTION_TIMEOUT);			
-			}
-			
-			
-			ContextWithJerseyClient<Map<String,List<String>>> answerContext = new  ContextWithJerseyClient<>(jerseyClient);
-			answerContext.setInput(questionContext.getPreviousOutputs());
-
-
-			ParallelPipelineRunner<Map<String,List<String>>, List<String>> answerGeneratorRunner = new ParallelPipelineRunner<>(10000);
-			
-			RunnablePipeline<Map<String,List<String>>, List<String>> generateAnswerPipeline = new RunnablePipeline<>("Generate Answers Pipelines", answerContext);
-						
-			generateAnswerPipeline.addStage(new RunSPARQLQueryStage(sparqlEndpointURL));
-			generateAnswerPipeline.addStage(new ProcessSPARQLResultStage());
-			
-			answerGeneratorRunner.addPipeline(generateAnswerPipeline);
-			
-			answerGeneratorRunner.run(); // run the pipeline
-			
-			if (!generateAnswerPipeline.isComplete()) {
-				throw new StageException("Generating answers took too long", ErrorCodes.GENERATING_ANSWERS_TIMEOUT);			
-			}
-			
+	public List<Answer> ask(@QueryParam("question") String param) {
+		Question question = new Question(param);
 	
-			answer.setQuestion(question);
-			//List answers = new ArrayList<>();
-			//answers.add(e)
-			answer.setAnswer(answerContext.getPreviousOutput(ProcessSPARQLResultStage.class.getName()));		
+		
+		ContextWithJerseyClient<Question, List<Answer>> context = new  ContextWithJerseyClient<>(jerseyClient);
+		context.setInput(question);
+		
+		RunnablePipeline<Question, List<Answer>> nlpPipeline = new RunnablePipeline<>("NLP Pipeline", context);
+		RunnablePipeline<Question, List<Answer>> quepyPipeline = new RunnablePipeline<>("Quepy Pipeline", context);
+		
+		nlpPipeline.addStage(new NLPQueryStage(namedEntityRecognitionURL, sparqlEndpointURL));
+		quepyPipeline.addStage(new IntegratedQuepyStage(quepyURL, sparqlEndpointURL, jerseyClient));
+		
+		ParallelPipelineRunner<Question, List<Answer>> pipeRunner = new ParallelPipelineRunner<>(10000);
+		pipeRunner.addPipeline(nlpPipeline);
+		pipeRunner.addPipeline(quepyPipeline);
+		
+		pipeRunner.run();
+		
+		if (quepyPipeline.isComplete() || nlpPipeline.isComplete()) {
+			// at least one pipeline is finished	
+			Map<String, List<Answer>> answerMap = context.getPreviousOutputs();
 			
-			answer.addDebugInfo(questionContext.getPreviousOutputs());
-			answer.addDebugInfo(answerContext.getPreviousOutputs());
-						
+			List<Answer> quepyAnswers = answerMap.get(IntegratedQuepyStage.class.getName()); 
 			
-		} catch(StageException e) {
-			answer.setErrorMessage(e.getLocalizedMessage());
-			answer.setErrorCode(e.getErrorCode());
+			List<Answer> nlpAnswers = answerMap.get(NLPQueryStage.class.getName());
+			
+
+			
+			List<Answer> results = new ArrayList<>();
+				
+			if (isEmpty(nlpAnswers) && isEmpty(quepyAnswers)) {	
+				Answer answer = new Answer();
+				answer.setErrorCode(ErrorCodes.NO_ANSWER_GENERATED);
+				answer.setErrorMessage("Could not find answer");
+				
+				results.add(answer);
+			} else {
+				results = mergeList(results, nlpAnswers, quepyAnswers);
+				
+			}
+			
+			return results;
+			
+		} else {
+			// what happened?!
+			if (context.isError()) {
+				throw context.getException();
+			} else {
+				throw new StageException("Processing questions took too long", ErrorCodes.PROCESSING_QUESTION_TIMEOUT);
+			}
+		}
+	}
+
+	
+	private List<Answer> mergeList(List<Answer> results, List<Answer> ... listsToMerge) {
+		List<String> index = new ArrayList<>();
+		
+		for (List<Answer> list : listsToMerge) {
+			for (Answer answer : list) {
+				if (!index.contains(answer.getAnswer())) {
+					// votes is defaulted to 1, so increment only on the second time we see it
+					if (answer.getVotes() == 1) {					
+						answer.addVote();
+					}
+					index.add(answer.getAnswer());
+					results.add(answer);
+				}
+			}
 		}
 		
-		return answer;
+		float defaultConfidence = (float) (1.0/results.size());
+		for (Answer answer : results) {
+			answer.setConfidence(defaultConfidence * answer.getVotes());
+		}
 		
+		return results;
+	}
+
+
+	private boolean isEmpty(List<Answer> lst) {
+		if (lst == null) {
+			return true;
+		} else {
+			return (lst.size() == 0);
+		}
 	}
 	
 }

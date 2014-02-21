@@ -49,40 +49,7 @@ public class RunSPARQLQueryStage extends AbstractAnswerStage {
 		String output = response.getEntity(String.class);
 		this.setOutput(output);
 		
-		
-//		String json = input.get(QuepyStage.class.getName());
-//		
-//		ObjectMapper mapper = new ObjectMapper();
-//		try {
-//			JsonNode rootNode = mapper.readTree(json);
-//			String query = rootNode.path("query").asText();
-//			System.out.println(query);
-//			
-//			Client jerseyClient = ((ContextWithJerseyClient) getContext()).getJerseyClient();		
-//			
-//			WebResource webResource = jerseyClient.resource(sparqlEndpointURL);		
-//			MultivaluedMap<String, String> params = new MultivaluedMapImpl();
-//			params.add("output", "json");
-//			
-//			params.add("query", query);
-//			
-//			ClientResponse response = webResource.queryParams(params).get(ClientResponse.class);
-//			
-//			String text = response.getEntity(String.class);
-//			
-//			System.out.println("P1");
-//			
-//			System.out.println(text);
-//			
-//			this.setOutput(text);
-//			
-//			
-//			
-//		} catch (IOException e) {
-//			throw new RuntimeException(e);
-//		}
-//		
-		
+
 		
 		
 	}

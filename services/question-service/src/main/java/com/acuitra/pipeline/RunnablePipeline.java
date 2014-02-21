@@ -1,5 +1,7 @@
 package com.acuitra.pipeline;
 
+import com.acuitra.stages.StageException;
+
 
 public class RunnablePipeline<T, O> extends Pipeline<T, O> implements Runnable {
 	private String name;
@@ -15,7 +17,7 @@ public class RunnablePipeline<T, O> extends Pipeline<T, O> implements Runnable {
 		this.name = name;
 	}
 
-	Context<T,O> getContext() {
+	public Context<T,O> getContext() {
 		return context;
 	}
 	
@@ -27,6 +29,9 @@ public class RunnablePipeline<T, O> extends Pipeline<T, O> implements Runnable {
 		try {
 			execute(this.context);
 			setComplete(true);
+		} catch (StageException e) {
+			this.context.setError(true);
+			this.context.setException(e);
 		} finally { 
 			Thread.currentThread().setName(oldName);
 		}

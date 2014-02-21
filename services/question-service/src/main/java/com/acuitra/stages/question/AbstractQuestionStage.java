@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.acuitra.pipeline.Context;
 import com.acuitra.pipeline.Stage;
+import com.acuitra.question.core.Answer;
 import com.acuitra.question.core.Question;
 
 public abstract class AbstractQuestionStage implements Stage<Question, List<String>> {

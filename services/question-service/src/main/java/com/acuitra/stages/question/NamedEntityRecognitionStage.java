@@ -16,7 +16,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 public class NamedEntityRecognitionStage extends AbstractQuestionStage {	
 	
 
-	private ContextWithJerseyClient<String> context;
+	private ContextWithJerseyClient<String, List<String>> context;
 	private Question question;
 	private String namedEntityRecognitionURL;	
 

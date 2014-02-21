@@ -6,31 +6,30 @@ import java.util.List;
 import java.util.Map;
 
 public class Answer {	
-	private List<String> answers = new ArrayList<>();
+	private String answer;
+	private String longAnswer;
 	private Question question;
 	private String errorMessage;
 	private String errorCode;
+	private float confidence = 1;
+	private int votes = 1;
 	
-	private Map<String, Object> debugInfo = new HashMap<>();
-	
-	public List<String> getAnswers() {
-		return answers;
-	}
-	public void setAnswer(List<String> answers) {
-		this.answers = answers;
-	}
+	private Map<String, List<String>> debugInfo = new HashMap<>();
+
 	public Question getQuestion() {
 		return question;
 	}
 	public void setQuestion(Question question) {
 		this.question = question;
 	}
-	public Map<String, Object> getDebugInfo() {
+	public Map<String, List<String>> getDebugInfo() {
 		return debugInfo;
 	}
 
-	public void addDebugInfo(String key, Object value) {
-		this.debugInfo.put(key, value);
+	public void addDebugInfo(String key, String value) {
+		List<String> lst = new ArrayList<>();
+		lst.add(value);
+		this.debugInfo.put(key, lst);
 	}
 	
 	public void addDebugInfo(Map<String, List<String>> debug) {
@@ -52,6 +51,34 @@ public class Answer {
 	}
 	public void setErrorCode(String errorCode) {
 		this.errorCode = errorCode;
+	}
+	public String getAnswer() {
+		return answer;
+	}
+	public void setAnswer(String answer) {
+		this.answer = answer;
+	}
+	public String getLongAnswer() {
+		return longAnswer;
+	}
+	public void setLongAnswer(String longAnswer) {
+		this.longAnswer = longAnswer;
+	}
+	public float getConfidence() {
+		return confidence;
+	}
+	public void setConfidence(float confidence) {
+		this.confidence = confidence;
+	}
+	public int getVotes() {
+		return votes;
+	}
+	public void setVotes(int votes) {
+		this.votes = votes;
+	}
+	public void addVote() {
+		votes++;
+		
 	}
 	
 }

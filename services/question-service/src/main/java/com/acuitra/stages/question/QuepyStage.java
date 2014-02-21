@@ -28,7 +28,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
  */
 public class QuepyStage extends AbstractQuestionStage {
 
-	private ContextWithJerseyClient<String> context;
+	private ContextWithJerseyClient<Question, List<String>> context;
 	private Question question;
 	private String quepyURL;
 	
@@ -41,7 +41,7 @@ public class QuepyStage extends AbstractQuestionStage {
 	public void loadContext(Context<Question, List<String>> ctx) {
 		this.question = ctx.getInput();
 		
-		this.context =  (ContextWithJerseyClient) ctx;		
+		this.context =  (ContextWithJerseyClient<Question, List<String>>) ctx;		
 
 	}
 

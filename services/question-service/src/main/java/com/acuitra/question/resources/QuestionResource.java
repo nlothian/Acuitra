@@ -1,14 +1,23 @@
 package com.acuitra.question.resources;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.acuitra.ErrorCodes;
 import com.acuitra.pipeline.ContextWithJerseyClient;
@@ -19,6 +28,10 @@ import com.acuitra.question.core.Question;
 import com.acuitra.stages.StageException;
 import com.acuitra.stages.integrated.IntegratedQuepyStage;
 import com.acuitra.stages.integrated.NLPQueryStage;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.sun.jersey.api.client.Client;
 import com.yammer.metrics.annotation.Timed;
 
@@ -26,11 +39,13 @@ import com.yammer.metrics.annotation.Timed;
 @Path("/ask")
 @Produces(MediaType.APPLICATION_JSON)
 public class QuestionResource {
+	Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	private Client jerseyClient;
 	private String namedEntityRecognitionURL;
 	private String sparqlEndpointURL;
 	private String quepyURL; 
+	private ListMultimap<String, String> namePredicateMapping;
 
 
 	public QuestionResource(Client jerseyClient, String namedEntityRecognitionURL, String sparqlEndpointURL, String quepyURL) {
@@ -38,8 +53,117 @@ public class QuestionResource {
 		this.namedEntityRecognitionURL = namedEntityRecognitionURL;
 		this.sparqlEndpointURL = sparqlEndpointURL;
 		this.quepyURL = quepyURL;
+		
+		namePredicateMapping = readPropertyMapping();
 	}
 	
+
+	private ListMultimap<String, String> readPropertyMapping() {
+		// read csv in format: word, predicate, preferred_term
+		// should contain either predicate or preferred term, not both
+		
+		String filename = "word-predicate-mappings.csv"; 
+
+		ListMultimap<String, String> namePredicateMapping = ArrayListMultimap.create();			
+		HashMap<String, String> namePreferredMapping = new HashMap<>();
+		
+		
+		
+		InputStream in = this.getClass().getClassLoader().getResourceAsStream(filename);
+		if (in == null) {
+			logger.error("Could not find /word-predicate-mappings.csv");
+		} else {
+			InputStreamReader is = new InputStreamReader(in);
+			BufferedReader br = new BufferedReader(is);
+			
+			boolean firstline = true;
+			String read;
+			try {
+				read = br.readLine();
+				
+				while(read != null) {
+					// skip the first line
+					if (!firstline) {
+						Iterable<String> strings = Splitter.on(',').trimResults().split(read);
+						String name = null;
+						String predicate = null;
+						String preferredTerm = null;
+						
+						int count = 0;
+						for (String string : strings) {
+							switch (count) {
+							case 0:
+								name = string;
+								break;
+							case 1:
+								predicate = string;
+								if (!predicate.startsWith("<")) {
+									predicate = "<" + predicate;
+								}
+								if (!predicate.endsWith(">")) {
+									predicate = predicate + ">";
+								}								
+								break;
+							case 2:
+								preferredTerm = string;
+								break;
+
+							default:
+								break;
+							} 
+							count++;				
+							
+						}
+						
+						if (!Strings.isNullOrEmpty(name)) {
+							// name should never be null
+							
+							// should contain either predicate or preferred term, not both
+							if (!Strings.isNullOrEmpty(predicate)) {
+								namePredicateMapping.put(name, predicate);
+							} else if (!Strings.isNullOrEmpty(preferredTerm)) {
+								namePreferredMapping.put(name, preferredTerm);
+							}
+						}
+						
+					} else {
+						// swallow the header line
+						firstline = false;
+					}
+					read = br.readLine();
+					
+				}
+				
+				// now both maps are filled. Take the namePreferredMapping and build a predicate map out of the non-preferred names, too
+				Set<String> keys = namePreferredMapping.keySet();
+				for (String name : keys) {
+					String preferredName = namePreferredMapping.get(name);
+					
+
+					ArrayList<String> predicates = new ArrayList<>();		
+					
+					List<String> existingPredicates = namePredicateMapping.get(preferredName);
+					
+					predicates.addAll(existingPredicates);
+					
+					namePredicateMapping.putAll(name, predicates);
+					
+				}
+				
+				logger.info(filename + " mappings successfully loaded");
+				
+			} catch (IOException e) {
+				logger.error("Error loading " + filename, e);
+				 
+			}			
+			
+			
+			
+		}
+		return namePredicateMapping;
+		
+	}
+
 
 	@GET
 	@Timed
@@ -53,7 +177,7 @@ public class QuestionResource {
 		RunnablePipeline<Question, List<Answer>> nlpPipeline = new RunnablePipeline<>("NLP Pipeline", context);
 		RunnablePipeline<Question, List<Answer>> quepyPipeline = new RunnablePipeline<>("Quepy Pipeline", context);
 		
-		nlpPipeline.addStage(new NLPQueryStage(namedEntityRecognitionURL, sparqlEndpointURL));
+		nlpPipeline.addStage(new NLPQueryStage(namedEntityRecognitionURL, sparqlEndpointURL, namePredicateMapping));
 		quepyPipeline.addStage(new IntegratedQuepyStage(quepyURL, sparqlEndpointURL, jerseyClient));
 		
 		ParallelPipelineRunner<Question, List<Answer>> pipeRunner = new ParallelPipelineRunner<>(10000);

@@ -14,6 +14,8 @@ import com.acuitra.question.core.Question;
 import com.acuitra.sparql.SparqlUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ListMultimap;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -23,13 +25,15 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 	private List<Answer> answers = new ArrayList<>();
 	private ContextWithJerseyClient<Question, List<Answer>> context;
 	private String namedEntityRecognitionURL;
-	private String sparqlEndpointURL; 
+	private String sparqlEndpointURL;
+	private ListMultimap<String, String> namePredicateMapping; 
 	
 
-	public NLPQueryStage(String namedEntityRecognitionURL, String sparqlEndpointURL) {
+	public NLPQueryStage(String namedEntityRecognitionURL, String sparqlEndpointURL, ListMultimap<String, String> namePredicateMapping) {
 		super();
 		this.namedEntityRecognitionURL = namedEntityRecognitionURL;
 		this.sparqlEndpointURL = sparqlEndpointURL;
+		this.namePredicateMapping = namePredicateMapping;
 	}	
 	
 	@Override
@@ -64,15 +68,28 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 		try {
 			rootNode = mapper.readTree(text);
 			
-			// look for any places
-			String place = findTaggedWord(rootNode, "NNP");
+			// look for any proper nouns
+			List<String> possiblyCompoundNoun = findTaggedWords(rootNode, "NNP", true);
+			
+			String properNouns = Joiner.on(" ").join(possiblyCompoundNoun);
+			
 			
 			//System.out.println("Place = " + place);
-			answer.addDebugInfo(this.getClass() +":Place", place);
+			answer.addDebugInfo(this.getClass() +":proper noun", properNouns);
 			
-			if (place != null) {
-				// We are looking for something about a place. 
-				String property = findTaggedWord(rootNode, "NN");
+			if (properNouns != null) {
+				// Assume we are looking for something about a proper noun. 
+				List<String> properties = findTaggedWords(rootNode, "NN", false); // eg, "capital" of country
+				
+				if (properties.size() == 0) {
+					// Try VBD (eg, someone was "born", someone was "buried"
+					properties = findTaggedWords(rootNode, "VBD", false); 					
+				}
+						
+				// we are only looking for a single property
+				String property = properties.get(0);
+				
+				
 				//System.out.println("Property = " + property);
 				answer.addDebugInfo(this.getClass() +":Property", property);
 				
@@ -102,13 +119,13 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 						builder.append("		'}'");
 						builder.append(" 	'}'");
 						builder.append(" '}'");
-						builder.append(" ?countryRes rdf:type dbpedia-owl:Country.");
+						//builder.append(" ?countryRes rdf:type dbpedia-owl:Country.");
 						builder.append(" ?countryRes  {1} ?answer. ");
 						builder.append(" OPTIONAL '{'?answer rdfs:label ?answerLabel. '}'. ");
 						builder.append(" OPTIONAL '{'?countryRes rdfs:label ?countryLabel '}'. ");
 						builder.append("'}'");
 												 						
-						String output = SparqlUtils.runQuery(jerseyClient, sparqlEndpointURL, builder.toString(), place, rdfPredicate);
+						String output = SparqlUtils.runQuery(jerseyClient, sparqlEndpointURL, builder.toString(), properNouns, rdfPredicate);
 						
 						answer.addDebugInfo(this.getClass() +":SPARQLResultSet", output);
 						
@@ -179,23 +196,33 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 	}
 
 	private String mapPropertyToRDFPredicate(String property) {
-		String targettedWord = property.toUpperCase();
-		
+		String targettedWord = property.toLowerCase();
 		String result = null;
 		
-		if ("CAPITAL".equals(targettedWord)) {
-			result = "<http://dbpedia.org/ontology/capital>";
-		} else if ("AREA".equals(targettedWord)) {
-			result = "<http://dbpedia.org/property/areaKm>";
-		} else if ("POPULATION".equals(targettedWord)) {
-			result = "<http://dbpedia.org/property/populationEstimate>";
-		} else if ("ANTHEM".equals(targettedWord)) {
-			result = "<http://dbpedia.org/property/nationalAnthem>";
-		} else if ("GDP".equals(targettedWord)) {
-			result = "<http://dbpedia.org/property/gdpNominal>";
-		} 
+		List<String> predicates = namePredicateMapping.get(targettedWord);
+		if (predicates.size() > 0) {
+			result = predicates.get(0);
+		}
 		
 		return result;
+		
+//		String targettedWord = property.toUpperCase();
+//		
+//		String result = null;
+//		
+//		if ("CAPITAL".equals(targettedWord)) {
+//			result = "<http://dbpedia.org/ontology/capital>";
+//		} else if ("AREA".equals(targettedWord)) {
+//			result = "<http://dbpedia.org/property/areaKm>";
+//		} else if ("POPULATION".equals(targettedWord)) {
+//			result = "<http://dbpedia.org/property/populationEstimate>";
+//		} else if ("ANTHEM".equals(targettedWord)) {
+//			result = "<http://dbpedia.org/property/nationalAnthem>";
+//		} else if ("GDP".equals(targettedWord)) {
+//			result = "<http://dbpedia.org/property/gdpNominal>";
+//		} 
+//		
+//		return result;
 		
 	}
 
@@ -209,22 +236,54 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 		return this.getClass().getName();
 	}
 	
-	private String findTaggedWord(JsonNode rootNode, String tag) {
+	private List<String> findTaggedWords(JsonNode rootNode, String tag, boolean lookForSequence) {
+		ArrayList<String> result = new ArrayList<>();
+		
 		int size = rootNode.size();
 		for (int i = 0; i < size; i++) {
 			JsonNode child = rootNode.get(i);
-			String word = findTaggedWord(child, tag);
-			if (word != null) {
-				return word;
+			List<String> words = findTaggedWords(child, tag, lookForSequence);
+			boolean foundFirstWordInPossibleSequence = false;
+			if (words.size() > 0) {
+				// we found the word or the sequence of words in a subchild
+				return words;
 			} else {
+				String word = null;
 				if ((word = checkForTaggedWord(child, tag)) != null) {
-					return word;
-				}		
+					foundFirstWordInPossibleSequence = true;
+					result.add(word);
+					if (!lookForSequence) {
+						return result;
+					}
+				} else {
+					// didn't find the word
+					foundFirstWordInPossibleSequence = false;
+				}
 				
+				if ((result.size() > 0) && (!foundFirstWordInPossibleSequence)) {
+					// found at least one word, and we are no longer in the same sequence
+					return result;
+				}
 			}
-		} 
+			
+		}
 		
-		return null;
+		
+//		int size = rootNode.size();
+//		for (int i = 0; i < size; i++) {
+//			JsonNode child = rootNode.get(i);
+//			String words = findTaggedWords(child, tag, lookForSequence);
+//			if (word != null) {
+//				return word;
+//			} else {
+//				if ((word = checkForTaggedWord(child, tag)) != null) {
+//					return word;
+//				}		
+//				
+//			}
+//		} 
+		
+		return result;
 
 	}
 

@@ -34,6 +34,7 @@ public class QuestionService extends Service<ServiceConfiguration> {
 		Logger logger = LoggerFactory.getLogger(this.getClass());
 		logger.info("quepyURL: " + config.getQuepyURL());
 		logger.info("sparqlEndpointURL: " + config.getSparqlEndpointURL());
+		logger.info("namedEntityRecognitionURL: " + config.getNamedEntityRecognitionURL());
 		
 	    final Client client = new JerseyClientBuilder().using(config.getJerseyClientConfiguration())
                 .using(env)            

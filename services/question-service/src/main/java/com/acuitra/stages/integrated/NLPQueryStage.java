@@ -98,12 +98,12 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 				}
 						
 				// we are only looking for a single property
-				String property = properties.get(0);
-				
-				
-				//System.out.println("Property = " + property);
-				answer.addDebugInfo(this.getClass() +":Property", property);
-				
+				String property = null;
+				if (properties.size() > 0) {
+					property = properties.get(0);
+				}
+						
+				answer.addDebugInfo(this.getClass() +":Property", property);				
 				
 				if (property != null) {
 					// we know what property we want

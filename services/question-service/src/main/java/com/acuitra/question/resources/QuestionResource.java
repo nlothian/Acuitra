@@ -226,13 +226,15 @@ public class QuestionResource {
 		List<String> index = new ArrayList<>();
 		
 		for (List<Answer> list : listsToMerge) {
-			for (Answer answer : list) {
-				if (!index.contains(answer.getAnswer())) {				
-					answer.addVote();
-					
-					index.add(answer.getAnswer());
-					results.add(answer);
-				}
+			if (list != null) {
+				for (Answer answer : list) {
+					if (!index.contains(answer.getAnswer())) {				
+						answer.addVote();
+						
+						index.add(answer.getAnswer());
+						results.add(answer);
+					}
+				}				
 			}
 		}
 		

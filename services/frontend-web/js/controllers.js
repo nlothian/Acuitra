@@ -34,21 +34,29 @@ angular.module('acuitra.controllers', []).
       
       if (ev.which==13) {        
         // When enter is pressed  
-        $scope.hideSamples = true;
+        $scope.hideSamples = true;      
 
         $scope.model.inprogress = true;
+
+        $scope.model.noAnswerFound = false;
 
         // Ask the question
         $http({method: 'GET', url: configService.get().questionServiceUrl + $scope.questionbox.question}).
           success(function(data, status, headers, config) {
             // get the answer        
+            console.log("call success");
             $scope.model.inprogress = false;
             $scope.model.response = data;
-            if (data.length && data.length == 0) {
+            if ($scope.model.response.length && $scope.model.response.length == 0) {
               $scope.model.noAnswerFound = true;
             }
+            if ($scope.model.response.length && $scope.model.response.length > 0 && ($scope.model.response[0].errorCode != null)) {
+              $scope.model.noAnswerFound = true;  
+            }
+
           }).
           error(function(data, status, headers, config) {
+            onsole.log("call failure");
             $scope.model.inprogress = false;
           });
       } else {

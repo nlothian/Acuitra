@@ -102,8 +102,16 @@
                     <a  type="button" class="btn btn-info pull-right" href="https://github.com/nlothian/Acuitra/wiki/Error:-Could-not-find-an-answer">Fix this problem</a>
                   </div>
                   <div ng-show="!model.noAnswerFound && !model.response.errorMessage" ng-repeat="answer in model.response">
-                    <h4 ng-hide="answer.longAnswer">{{answer.answer}}</h4>                  
-                    <h4 ng-show="answer.longAnswer">{{answer.longAnswer}}</h4>
+
+                    <span ng-show="$first">
+                      <h4 ng-hide="answer.longAnswer">{{answer.answer}}</h4>                  
+                      <h4 ng-show="answer.longAnswer">{{answer.longAnswer}}</h4>
+                    </span>
+
+                    <span ng-hide="$first">
+                      <h5 ng-hide="answer.longAnswer">Another answer: {{answer.answer}}</h4>                  
+                      <h5 ng-show="answer.longAnswer">Another answer: {{answer.longAnswer}}</h4>
+                    </span>
                   </div>
                 </div>
               </div>

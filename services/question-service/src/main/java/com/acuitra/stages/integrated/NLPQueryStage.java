@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.hibernate.validator.internal.util.privilegedactions.GetConstructor;
+
 import com.acuitra.pipeline.Context;
 import com.acuitra.pipeline.ContextWithJerseyClient;
 import com.acuitra.pipeline.Stage;
@@ -22,6 +24,7 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class NLPQueryStage implements Stage<Question, List<Answer>> {
+	private static final String PROPERTY_TYPE = "PROPERTY_TYPE";
 	private List<Answer> answers = new ArrayList<>();
 	private ContextWithJerseyClient<Question, List<Answer>> context;
 	private String namedEntityRecognitionURL;
@@ -83,7 +86,15 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 				
 				if (properties.size() == 0) {
 					// Try VBD (eg, someone was "born", someone was "buried"
-					properties = findTaggedWords(rootNode, "VBD", false); 					
+					properties = findTaggedWords(rootNode, "VBD", false); 
+					if (properties.size() > 0) {
+						// found VBD word
+						context.setAttribute(PROPERTY_TYPE, "VBD");
+						
+					}
+				} else {
+					// found a NN word
+					context.setAttribute(PROPERTY_TYPE, "NN");
 				}
 						
 				// we are only looking for a single property
@@ -167,8 +178,8 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 			for (int i = 0; i < answerCount; i++) {
 				String answerValue = rootNode.path("results").path("bindings").path(i).path("answer").path("value").asText();
 				String answerLabel = rootNode.path("results").path("bindings").path(i).path("answerLabel").path("value").asText();
-				String countryLabel = rootNode.path("results").path("bindings").path(i).path("countryLabel").path("value").asText();
-				String countryRes = rootNode.path("results").path("bindings").path(i).path("countryRes").path("value").asText();
+				String subjectLabel = rootNode.path("results").path("bindings").path(i).path("countryLabel").path("value").asText();
+				String subjectRes = rootNode.path("results").path("bindings").path(i).path("countryRes").path("value").asText();
 						
 				Answer answer = new Answer();		
 				if (!answerLabel.isEmpty()) {
@@ -177,11 +188,18 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 					answer.setAnswer(answerValue);
 				}
 				
-				if (!countryLabel.isEmpty()) {
+				if (!subjectLabel.isEmpty()) {
+					String questionType = context.getAttribute(PROPERTY_TYPE);
+					String answerToUse = answerValue;
 					if (!answerLabel.isEmpty()) {
-						answer.setLongAnswer("The " + property + " of " + countryLabel + " is " + answerLabel);
-					} else {
-						answer.setLongAnswer("The " + property + " of " + countryLabel + " is " + answerValue);
+						answerToUse = answerLabel;
+					}
+					
+					
+					if ("NN".equals(questionType)) {
+						answer.setLongAnswer("The " + property + " of " + subjectLabel + " is " + answerToUse);
+					} else if ("VBD".equals(questionType)) {
+						answer.setLongAnswer(subjectLabel + " is " + property + " at " + answerToUse);
 					}
 					
 				}
@@ -268,20 +286,6 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 			
 		}
 		
-		
-//		int size = rootNode.size();
-//		for (int i = 0; i < size; i++) {
-//			JsonNode child = rootNode.get(i);
-//			String words = findTaggedWords(child, tag, lookForSequence);
-//			if (word != null) {
-//				return word;
-//			} else {
-//				if ((word = checkForTaggedWord(child, tag)) != null) {
-//					return word;
-//				}		
-//				
-//			}
-//		} 
 		
 		return result;
 

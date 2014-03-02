@@ -9,6 +9,8 @@ public class Context<T, O> {
 	
 	private T input;
 	private Map<String, O> previousOutputs = new HashMap<>();
+	
+	private Map<String, String> attributes =  new  HashMap<>();
 
 	public Map<String, O> getPreviousOutputs() {
 		return previousOutputs;
@@ -50,6 +52,18 @@ public class Context<T, O> {
 		this.exception = exception;
 	}
 
+	public Map<String, String> getAttributes() {
+		return attributes;
+	}
+	
+	public void setAttribute(String key, String value) {
+		attributes.put(key, value);
+	}
+	
+	public String getAttribute(String key) {
+		return attributes.get(key);
+	}
+	
 
 	
 }

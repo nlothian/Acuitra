@@ -227,11 +227,9 @@ public class QuestionResource {
 		
 		for (List<Answer> list : listsToMerge) {
 			for (Answer answer : list) {
-				if (!index.contains(answer.getAnswer())) {
-					// votes is defaulted to 1, so increment only on the second time we see it
-					if (answer.getVotes() == 1) {					
-						answer.addVote();
-					}
+				if (!index.contains(answer.getAnswer())) {				
+					answer.addVote();
+					
 					index.add(answer.getAnswer());
 					results.add(answer);
 				}

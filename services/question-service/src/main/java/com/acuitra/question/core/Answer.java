@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+
 public class Answer {	
 	private String answer;
 	private String longAnswer;
@@ -12,10 +15,12 @@ public class Answer {
 	private String errorMessage;
 	private String errorCode;
 	private float confidence = 1;
-	private int votes = 1;
+	private int votes = 0;
 	
 	private Map<String, List<String>> debugInfo = new HashMap<>();
-
+	
+	
+	
 	public Question getQuestion() {
 		return question;
 	}

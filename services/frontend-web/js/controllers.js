@@ -43,21 +43,32 @@ angular.module('acuitra.controllers', []).
         // Ask the question
         $http({method: 'GET', url: configService.get().questionServiceUrl + $scope.questionbox.question}).
           success(function(data, status, headers, config) {
+            $scope.model = {};
+
             // get the answer        
-            console.log("call success");
             $scope.model.inprogress = false;
             $scope.model.response = data;
-            if ($scope.model.response.length && $scope.model.response.length == 0) {
-              $scope.model.noAnswerFound = true;
+            if ($scope.model.response.length) {
+              if ($scope.model.response.length == 0) {
+                $scope.model.noAnswerFound = true;  
+              };
+              if ($scope.model.response.length > 0 && ($scope.model.response[0].errorCode != null)) {
+                $scope.model.noAnswerFound = true;  
+              }
+              
+              $scope.model.noAnswerFound = false; 
+              //$scope.$apply();
             }
-            if ($scope.model.response.length && $scope.model.response.length > 0 && ($scope.model.response[0].errorCode != null)) {
-              $scope.model.noAnswerFound = true;  
-            }
+
 
           }).
           error(function(data, status, headers, config) {
-            onsole.log("call failure");
+            console.log("call failure");
             $scope.model.inprogress = false;
+            $scope.model.noAnswerFound = true;
+            $scope.model.response = {};
+            $scope.model.response.errorMessage = "An unexpected error occured";
+            $scope.$apply();
           });
       } else {
           $scope.model = {};

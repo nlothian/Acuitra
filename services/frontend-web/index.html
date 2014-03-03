@@ -87,21 +87,21 @@
           </div>        
           <div class="col-md-12" ng-show="model.response"> 
               <div class="panel panel-default">
-                <div ng-show="!model.response.errorMessage" class="panel-heading">
-                  <h2 class="panel-title">{{model.response.question.question}}</h2>
+                <div class="panel-heading">
+                  <h2 class="panel-title">{{model.response[0].question.question}}</h2>
                 </div>
                 <div class="panel-body">
-                  <div ng-show="model.response.errorMessage">
-                    <p class="pull-left text-warning">{{model.response.errorMessage}}</p>                  
-                    <a  type="button" class="btn btn-info pull-right" href="https://github.com/nlothian/Acuitra/wiki/Error:-{{model.response.errorCode}}">Fix this problem</a>
+                  <div ng-show="model.response[0].errorMessage">
+                    <p class="pull-left text-warning">{{model.response[0].errorMessage}}</p>                  
+                    <a ng-show="model.response[0].errorCode" type="button" class="btn btn-info pull-right" href="https://github.com/nlothian/Acuitra/wiki/Error:-{{model.response[0].errorCode}}">Fix this problem</a>
                   </div>
                               
   
-                  <div ng-show="model.noAnswerFound && !model.response.errorMessage">               
+                  <div ng-show="model.noAnswerFound && !model.response[0].errorMessage">               
                     <p class="pull-left text-warning">Sorry, could not find an answer.</p>
                     <a  type="button" class="btn btn-info pull-right" href="https://github.com/nlothian/Acuitra/wiki/Error:-Could-not-find-an-answer">Fix this problem</a>
                   </div>
-                  <div ng-show="!model.noAnswerFound && !model.response.errorMessage" ng-repeat="answer in model.response">
+                  <div ng-show="!model.noAnswerFound && !model.response[0].errorMessage" ng-repeat="answer in model.response">
 
                     <span ng-show="$first">
                       <h4 ng-hide="answer.longAnswer">{{answer.answer}}</h4>                  

@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import com.acuitra.nlp.NLPUtils;
 import com.acuitra.pipeline.Context;
 import com.acuitra.pipeline.ContextWithJerseyClient;
 import com.acuitra.pipeline.Stage;
@@ -76,9 +77,12 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 			rootNode = mapper.readTree(text);
 			
 			// look for any proper nouns
-			List<String> possiblyCompoundNoun = findTaggedWords(rootNode, "NNP", true);
+			System.out.println(rootNode);
+			List<String> possiblyCompoundNoun = NLPUtils.findTaggedWords(rootNode, true, "NNP", "NNPS");
 			
 			final String properNouns = Joiner.on(" ").join(possiblyCompoundNoun);
+			
+			System.out.println("Nouns: " + properNouns);
 			
 			context.setAttribute(REQUESTED_SUBJECT, properNouns);
 			
@@ -88,11 +92,11 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 			
 			if (properNouns != null) {
 				// Assume we are looking for something about a proper noun. 
-				List<String> properties = findTaggedWords(rootNode, "NN", false); // eg, "capital" of country
+				List<String> properties = NLPUtils.findTaggedWords(rootNode, false, "NN"); // eg, "capital" of country
 				
 				if (properties.size() == 0) {
 					// Try VBD (eg, someone was "born", someone was "buried"
-					properties = findTaggedWords(rootNode, "VBD", false); 
+					properties = NLPUtils.findTaggedWords(rootNode, false, "VBD"); 
 					if (properties.size() > 0) {
 						// found VBD word
 						context.setAttribute(PROPERTY_TYPE, "VBD");
@@ -283,50 +287,7 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 		return this.getClass().getName();
 	}
 	
-	private List<String> findTaggedWords(JsonNode rootNode, String tag, boolean lookForSequence) {
-		ArrayList<String> result = new ArrayList<>();
-		
-		int size = rootNode.size();
-		for (int i = 0; i < size; i++) {
-			JsonNode child = rootNode.get(i);
-			List<String> words = findTaggedWords(child, tag, lookForSequence);
-			boolean foundFirstWordInPossibleSequence = false;
-			if (words.size() > 0) {
-				// we found the word or the sequence of words in a subchild
-				return words;
-			} else {
-				String word = null;
-				if ((word = checkForTaggedWord(child, tag)) != null) {
-					foundFirstWordInPossibleSequence = true;
-					result.add(word);
-					if (!lookForSequence) {
-						return result;
-					}
-				} else {
-					// didn't find the word
-					foundFirstWordInPossibleSequence = false;
-				}
-				
-				if ((result.size() > 0) && (!foundFirstWordInPossibleSequence)) {
-					// found at least one word, and we are no longer in the same sequence
-					return result;
-				}
-			}
-			
-		}
-		
-		
-		return result;
 
-	}
-
-	private String checkForTaggedWord(JsonNode child, String tag) {
-		if ((child.size() == 2) && (tag.equals(child.get(1).asText()))) {
-			return child.get(0).asText();
-		} else {
-			return null;
-		}
-	}	
 	
 
 }

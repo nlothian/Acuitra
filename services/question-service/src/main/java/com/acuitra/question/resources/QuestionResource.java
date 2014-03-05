@@ -70,97 +70,109 @@ public class QuestionResource {
 		
 		
 		InputStream in = this.getClass().getClassLoader().getResourceAsStream(filename);
-		if (in == null) {
-			logger.error("Could not find /word-predicate-mappings.csv");
-		} else {
-			InputStreamReader is = new InputStreamReader(in);
-			BufferedReader br = new BufferedReader(is);
-			
-			boolean firstline = true;
-			String read;
-			try {
-				read = br.readLine();
-				
-				while(read != null) {
-					// skip the first line
-					if (!firstline) {
-						Iterable<String> strings = Splitter.on(',').trimResults().split(read);
-						String name = null;
-						String predicate = null;
-						String preferredTerm = null;
-						
-						int count = 0;
-						for (String string : strings) {
-							switch (count) {
-							case 0:
-								name = string;
-								break;
-							case 1:
-								predicate = string;
-								if (!predicate.startsWith("<")) {
-									predicate = "<" + predicate;
-								}
-								if (!predicate.endsWith(">")) {
-									predicate = predicate + ">";
-								}								
-								break;
-							case 2:
-								preferredTerm = string;
-								break;
+		try {
+			if (in == null) {
+				logger.error("Could not find /word-predicate-mappings.csv");
+			} else {
+				InputStreamReader is = new InputStreamReader(in);
+				BufferedReader br = new BufferedReader(is);
 
-							default:
-								break;
-							} 
-							count++;				
-							
-						}
-						
-						if (!Strings.isNullOrEmpty(name)) {
-							// name should never be null
-							
-							// should contain either predicate or preferred term, not both
-							if (!Strings.isNullOrEmpty(predicate)) {
-								namePredicateMapping.put(name, predicate);
-							} else if (!Strings.isNullOrEmpty(preferredTerm)) {
-								namePreferredMapping.put(name, preferredTerm);
-							}
-						}
-						
-					} else {
-						// swallow the header line
-						firstline = false;
-					}
+				boolean firstline = true;
+				String read;
+				try {
 					read = br.readLine();
-					
-				}
-				
-				// now both maps are filled. Take the namePreferredMapping and build a predicate map out of the non-preferred names, too
-				Set<String> keys = namePreferredMapping.keySet();
-				for (String name : keys) {
-					String preferredName = namePreferredMapping.get(name);
-					
 
-					ArrayList<String> predicates = new ArrayList<>();		
-					
-					List<String> existingPredicates = namePredicateMapping.get(preferredName);
-					
-					predicates.addAll(existingPredicates);
-					
-					namePredicateMapping.putAll(name, predicates);
-					
+					while (read != null) {
+						// skip the first line
+						if (!firstline) {
+							Iterable<String> strings = Splitter.on(',').trimResults().split(read);
+							String name = null;
+							String predicate = null;
+							String preferredTerm = null;
+
+							int count = 0;
+							for (String string : strings) {
+								// iterate along the comma separated string
+								switch (count) {
+								case 0:
+									name = string;
+									break;
+								case 1:
+									if (!Strings.isNullOrEmpty(string)) {
+										predicate = string;
+										if (!predicate.startsWith("<")) {
+											predicate = "<" + predicate;
+										}
+										if (!predicate.endsWith(">")) {
+											predicate = predicate + ">";
+										}
+									}
+									break;
+
+								case 2:
+									if (!Strings.isNullOrEmpty(string)) {
+										preferredTerm = string;
+									}
+									break;
+
+								default:
+									break;
+								}
+								count++;
+
+							}
+
+							if (!Strings.isNullOrEmpty(name)) {
+								// name should never be null
+
+								// should contain either predicate or preferred term, not both
+								if (!Strings.isNullOrEmpty(predicate)) {
+									namePredicateMapping.put(name, predicate);
+								} else if (!Strings.isNullOrEmpty(preferredTerm)) {
+									namePreferredMapping.put(name, preferredTerm);
+								}
+							}
+
+						} else {
+							// swallow the header line
+							firstline = false;
+						}
+						read = br.readLine();
+
+					}
+
+					// now both maps are filled. Take the namePreferredMapping and build a predicate map out of the non-preferred names, too
+					Set<String> keys = namePreferredMapping.keySet();
+					for (String name : keys) {
+						String preferredName = namePreferredMapping.get(name);
+
+						ArrayList<String> predicates = new ArrayList<>();
+
+						List<String> existingPredicates = namePredicateMapping.get(preferredName);
+
+						predicates.addAll(existingPredicates);
+
+						namePredicateMapping.putAll(name, predicates);
+
+					}
+
+					logger.info(filename + " mappings successfully loaded");
+
+				} catch (IOException e) {
+					logger.error("Error loading " + filename, e);
+
 				}
-				
-				logger.info(filename + " mappings successfully loaded");
-				
-			} catch (IOException e) {
-				logger.error("Error loading " + filename, e);
-				 
-			}			
-			
-			
-			
+			}
+			return namePredicateMapping;
+		} finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					// ignore
+				}
+			}
 		}
-		return namePredicateMapping;
 		
 	}
 

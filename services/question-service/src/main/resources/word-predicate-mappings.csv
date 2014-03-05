@@ -18,7 +18,6 @@ chair,http://dbpedia.org/property/keyPeople,
 chairman,http://dbpedia.org/property/keyPeople,
 chairperson,http://dbpedia.org/property/keyPeople,
 chairwoman,http://dbpedia.org/property/keyPeople,
-child,http://dbpedia.org/property/children,
 child,http://dbpedia.org/ontology/child,
 college,http://dbpedia.org/ontology/education,
 college,http://dbpedia.org/ontology/almaMater,
@@ -69,6 +68,7 @@ husband,,spouse
 income,http://dbpedia.org/property/operatingIncome,
 join,http://dbpedia.org/property/accessioneudate,
 joined,,join
+landmass,,area
 lanugage,http://dbpedia.org/ontology/officialLanguage,
 largest city,http://dbpedia.org/ontology/largestCity,
 largest city,http://dbpedia.org/property/largestCity,

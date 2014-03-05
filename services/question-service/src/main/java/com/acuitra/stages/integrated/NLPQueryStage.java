@@ -3,10 +3,13 @@ package com.acuitra.stages.integrated;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.core.MultivaluedMap;
-
-import org.hibernate.validator.internal.util.privilegedactions.GetConstructor;
 
 import com.acuitra.pipeline.Context;
 import com.acuitra.pipeline.ContextWithJerseyClient;
@@ -25,7 +28,8 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class NLPQueryStage implements Stage<Question, List<Answer>> {
 	private static final String PROPERTY_TYPE = "PROPERTY_TYPE";
-	private List<Answer> answers = new ArrayList<>();
+	private static final String REQUESTED_SUBJECT = "REQUESTED_SUBJECT";
+	private List<Answer> resultAnswers = new ArrayList<>();
 	private ContextWithJerseyClient<Question, List<Answer>> context;
 	private String namedEntityRecognitionURL;
 	private String sparqlEndpointURL;
@@ -46,14 +50,14 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 
 	@Override
 	public void execute() {
-		Question question = context.getInput();
+		final Question question = context.getInput();
 		
-		Answer answer = new Answer();
+		final Answer answer = new Answer();
 		answer.setQuestion(question);
 		answer.addDebugInfo(this.getClass() +":QuestionText", question.getQuestion());
 		
 		
-		Client jerseyClient = context.getJerseyClient();
+		final Client jerseyClient = context.getJerseyClient();
 		
 		WebResource webResource = jerseyClient.resource(namedEntityRecognitionURL);		
 		MultivaluedMap<String, String> params = new MultivaluedMapImpl();
@@ -74,7 +78,9 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 			// look for any proper nouns
 			List<String> possiblyCompoundNoun = findTaggedWords(rootNode, "NNP", true);
 			
-			String properNouns = Joiner.on(" ").join(possiblyCompoundNoun);
+			final String properNouns = Joiner.on(" ").join(possiblyCompoundNoun);
+			
+			context.setAttribute(REQUESTED_SUBJECT, properNouns);
 			
 			
 			//System.out.println("Place = " + place);
@@ -97,57 +103,73 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 					context.setAttribute(PROPERTY_TYPE, "NN");
 				}
 						
-				// we are only looking for a single property
-				String property = null;
+				// we only know how to handle a single property
+				String temp = null;
 				if (properties.size() > 0) {
-					property = properties.get(0);
+					temp = properties.get(0);
 				}
-						
+				final String property = temp;		
+				
 				answer.addDebugInfo(this.getClass() +":Property", property);				
 				
 				if (property != null) {
 					// we know what property we want
 					
-					String rdfPredicate = mapPropertyToRDFPredicate(property);
+					final List<String> rdfPredicates = mapPropertyToRDFPredicate(property);
 					
-					answer.addDebugInfo(this.getClass() +":Predicate", rdfPredicate);
 					
-					if (rdfPredicate != null) {
+					if (rdfPredicates == null) {
+						answer.addDebugInfo(this.getClass() +":Predicate", null);
+					} else {
 						// we know how to map this property
 												
-						StringBuilder builder = new StringBuilder();
-						builder.append("PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ");
-						builder.append("PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ");
-						builder.append("PREFIX dbpedia-owl: <http://dbpedia.org/ontology/> ");
-						builder.append("");
-						builder.append("SELECT DISTINCT ?countryRes ?countryLabel ?answer ?answerLabel WHERE '{' ");
-						builder.append(" '{'");
-						builder.append("	SELECT ?countryRes WHERE '{'");
-						builder.append("			'{'?countryRes rdfs:label \"{0}\"@en.");
-						builder.append("		'}' UNION '{'");
-						builder.append("			?altName rdfs:label \"{0}\"@en .");
-						builder.append("			?altName dbpedia-owl:wikiPageRedirects ?countryRes  .");
-						builder.append("		'}'");
-						builder.append(" 	'}'");
-						builder.append(" '}'");
-						//builder.append(" ?countryRes rdf:type dbpedia-owl:Country.");
-						builder.append(" ?countryRes  {1} ?answer. ");
-						builder.append(" OPTIONAL '{'?answer rdfs:label ?answerLabel. '}'. ");
-						builder.append(" OPTIONAL '{'?countryRes rdfs:label ?countryLabel '}'. ");
-						builder.append("'}'");
-												 						
-						String output = SparqlUtils.runQuery(jerseyClient, sparqlEndpointURL, builder.toString(), properNouns, rdfPredicate);
+						// build the query
+						final String query = buildQuery();
 						
-						answer.addDebugInfo(this.getClass() +":SPARQLResultSet", output);
+						List<Future<List<Answer>>> list = new ArrayList<>();
 						
-						System.out.println(output);
+						for (final String predicate : rdfPredicates) {
+							Callable<List<Answer>> runQueryCallable = new Callable<List<Answer>>() {
+
+								@Override
+								public List<Answer> call() throws Exception {
+									// run the query
+									String output = SparqlUtils.runQuery(jerseyClient, sparqlEndpointURL, query, properNouns, predicate);
+									
+									answer.addDebugInfo(this.getClass() +":SPARQLResultSet", output);
+									
+									//System.out.println(output);
+									List<Answer> processedAnswers = processResultSet(output, property);
+									if (processedAnswers != null && processedAnswers.size() > 0) {
+										// copy information we've been collecting to the first answer in the list
+										Answer firstAnswer = processedAnswers.get(0);
+										firstAnswer.addDebugInfo(answer.getDebugInfo());
+										firstAnswer.setQuestion(question);							
+									}
+									
+									return processedAnswers;
+
+								}
+							};
+							
+							ExecutorService executor = Executors.newCachedThreadPool();
+							Future<List<Answer>> future = executor.submit(runQueryCallable);
+							list.add(future);
+							
+							
+						}
 						
-						answers = processResultSet(output, property);
-						if (answers != null && answers.size() > 0) {
-							// copy information we've been collecting to the first answer in the list
-							Answer firstAnswer = answers.get(0);
-							firstAnswer.addDebugInfo(answer.getDebugInfo());
-							firstAnswer.setQuestion(question);							
+						
+						for (Future<List<Answer>> future : list) {
+							try {
+								List<Answer> queryAnswers = future.get(10, TimeUnit.SECONDS);		
+								for (Answer queryAnswer : queryAnswers) {
+									resultAnswers.add(queryAnswer);
+								}
+							} catch (Exception e) {
+								// this query failed
+								e.printStackTrace();
+							}
 						}
 						
 						
@@ -166,6 +188,31 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 		
 	}
 
+	private String buildQuery() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ");
+		builder.append("PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ");
+		builder.append("PREFIX dbpedia-owl: <http://dbpedia.org/ontology/> ");
+		builder.append("");
+		builder.append("SELECT DISTINCT ?subjectRes ?subjectLabel ?answer ?answerLabel WHERE '{' ");
+		builder.append(" '{'");
+		builder.append("	SELECT ?subjectRes WHERE '{'");
+		builder.append("			'{'?subjectRes rdfs:label \"{0}\"@en.");
+		builder.append("		'}' UNION '{'");
+		builder.append("			?altName rdfs:label \"{0}\"@en .");
+		builder.append("			?altName dbpedia-owl:wikiPageRedirects ?subjectRes  .");
+		builder.append("		'}'");
+		builder.append(" 	'}'");
+		builder.append(" '}'");
+		//builder.append(" ?subjectRes rdf:type dbpedia-owl:Country.");
+		builder.append(" ?subjectRes  {1} ?answer. ");
+		builder.append(" OPTIONAL '{'?answer rdfs:label ?answerLabel. '}'. ");
+		builder.append(" OPTIONAL '{'?subjectRes rdfs:label ?subjectLabel '}'. ");
+		builder.append("'}'");
+		
+		return builder.toString();
+	}
+
 	private List<Answer> processResultSet(String sparqlResult, String property) {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
@@ -178,8 +225,8 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 			for (int i = 0; i < answerCount; i++) {
 				String answerValue = rootNode.path("results").path("bindings").path(i).path("answer").path("value").asText();
 				String answerLabel = rootNode.path("results").path("bindings").path(i).path("answerLabel").path("value").asText();
-				String subjectLabel = rootNode.path("results").path("bindings").path(i).path("countryLabel").path("value").asText();
-				String subjectRes = rootNode.path("results").path("bindings").path(i).path("countryRes").path("value").asText();
+				String subjectLabel = rootNode.path("results").path("bindings").path(i).path("subjectLabel").path("value").asText();
+				String subjectRes = rootNode.path("results").path("bindings").path(i).path("subjectRes").path("value").asText();
 						
 				Answer answer = new Answer();		
 				if (!answerLabel.isEmpty()) {
@@ -213,40 +260,22 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 		
 	}
 
-	private String mapPropertyToRDFPredicate(String property) {
+	private List<String> mapPropertyToRDFPredicate(String property) {
 		String targettedWord = property.toLowerCase();
-		String result = null;
+		List<String> result = null;
 		
 		List<String> predicates = namePredicateMapping.get(targettedWord);
 		if (predicates.size() > 0) {
-			result = predicates.get(0);
+			result = predicates;
 		}
 		
 		return result;
-		
-//		String targettedWord = property.toUpperCase();
-//		
-//		String result = null;
-//		
-//		if ("CAPITAL".equals(targettedWord)) {
-//			result = "<http://dbpedia.org/ontology/capital>";
-//		} else if ("AREA".equals(targettedWord)) {
-//			result = "<http://dbpedia.org/property/areaKm>";
-//		} else if ("POPULATION".equals(targettedWord)) {
-//			result = "<http://dbpedia.org/property/populationEstimate>";
-//		} else if ("ANTHEM".equals(targettedWord)) {
-//			result = "<http://dbpedia.org/property/nationalAnthem>";
-//		} else if ("GDP".equals(targettedWord)) {
-//			result = "<http://dbpedia.org/property/gdpNominal>";
-//		} 
-//		
-//		return result;
 		
 	}
 
 	@Override
 	public List<Answer> getOutput() {
-		return answers;
+		return resultAnswers;
 	}
 
 	@Override

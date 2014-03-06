@@ -2,9 +2,13 @@ package com.acuitra.sparql;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
+
+import ch.qos.logback.classic.pattern.ClassOfCallerConverter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,7 +36,7 @@ public class SparqlUtils {
 	}
 
 
-	public static String runQuery(Client jerseyClient, String sparqlEndpointURL, String query, Object... params) {	
+	public static String runQuery(Client jerseyClient, String sparqlEndpointURL, String query, Object... params) {
 		
 		String subbedQuery = MessageFormat.format(query, params);
 		

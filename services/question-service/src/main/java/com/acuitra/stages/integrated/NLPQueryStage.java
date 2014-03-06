@@ -11,6 +11,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.eclipse.jetty.util.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.acuitra.nlp.NLPUtils;
 import com.acuitra.pipeline.Context;
 import com.acuitra.pipeline.ContextWithJerseyClient;
@@ -28,13 +32,15 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class NLPQueryStage implements Stage<Question, List<Answer>> {
+	Logger logger = LoggerFactory.getLogger(this.getClass());
+	
 	private static final String PROPERTY_TYPE = "PROPERTY_TYPE";
 	private static final String REQUESTED_SUBJECT = "REQUESTED_SUBJECT";
 	private List<Answer> resultAnswers = new ArrayList<>();
-	private ContextWithJerseyClient<Question, List<Answer>> context;
-	private String namedEntityRecognitionURL;
-	private String sparqlEndpointURL;
-	private ListMultimap<String, String> namePredicateMapping; 
+	ContextWithJerseyClient<Question, List<Answer>> context;
+	String namedEntityRecognitionURL;
+	String sparqlEndpointURL;
+	ListMultimap<String, String> namePredicateMapping; 
 	
 
 	public NLPQueryStage(String namedEntityRecognitionURL, String sparqlEndpointURL, ListMultimap<String, String> namePredicateMapping) {
@@ -82,7 +88,7 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 			
 			final String properNouns = Joiner.on(" ").join(possiblyCompoundNoun);
 			
-			System.out.println("Nouns: " + properNouns);
+			logger.info("Nouns: " + properNouns);
 			
 			context.setAttribute(REQUESTED_SUBJECT, properNouns);
 			
@@ -91,21 +97,7 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 			answer.addDebugInfo(this.getClass() +":proper noun", properNouns);
 			
 			if (properNouns != null) {
-				// Assume we are looking for something about a proper noun. 
-				List<String> properties = NLPUtils.findTaggedWords(rootNode, false, "NN"); // eg, "capital" of country
-				
-				if (properties.size() == 0) {
-					// Try VBD (eg, someone was "born", someone was "buried"
-					properties = NLPUtils.findTaggedWords(rootNode, false, "VBD"); 
-					if (properties.size() > 0) {
-						// found VBD word
-						context.setAttribute(PROPERTY_TYPE, "VBD");
-						
-					}
-				} else {
-					// found a NN word
-					context.setAttribute(PROPERTY_TYPE, "NN");
-				}
+				List<String> properties = extractTargetProperty(rootNode);
 						
 				// we only know how to handle a single property
 				String temp = null;
@@ -132,11 +124,14 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 						
 						List<Future<List<Answer>>> list = new ArrayList<>();
 						
+						
+						// for each predicate, run a query
 						for (final String predicate : rdfPredicates) {
 							Callable<List<Answer>> runQueryCallable = new Callable<List<Answer>>() {
 
 								@Override
 								public List<Answer> call() throws Exception {
+									
 									// run the query
 									String output = SparqlUtils.runQuery(jerseyClient, sparqlEndpointURL, query, properNouns, predicate);
 									
@@ -159,8 +154,6 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 							ExecutorService executor = Executors.newCachedThreadPool();
 							Future<List<Answer>> future = executor.submit(runQueryCallable);
 							list.add(future);
-							
-							
 						}
 						
 						
@@ -171,25 +164,40 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 									resultAnswers.add(queryAnswer);
 								}
 							} catch (Exception e) {
-								// this query failed
-								e.printStackTrace();
+								logger.warn("error occured retrieving answer", e);
 							}
 						}
-						
-						
-					}
-					
-				}
-				
+					}					
+				}				
 			}
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Error with query", e);
 		}
 		
-				
+	}
+
+	private List<String> extractTargetProperty(JsonNode rootNode) {
+		// Assume we are looking for something about a proper noun. 
 		
+		// NN: What is the capital of Australia
+		// NNS: What species is a Kangaroo
+		// VBD: Where was Abraham Lincoln buried?
+		// VBP: What is the subordo of a Porcupine?
+		// JJ: How tall is Bill Clinton?
+		
+		String[] possibleTags = {"NN", "NNS", "VBD", "VBP", "JJ"};
+		for (int i = 0; i < possibleTags.length; i++) {
+			List<String> properties = NLPUtils.findTaggedWords(rootNode, false, possibleTags[i]); 
+			if (properties.size() > 0) {
+				context.setAttribute(PROPERTY_TYPE, possibleTags[i]);
+				return properties;			
+			}
+			
+		}
+		
+		// nothing found
+		return new ArrayList<String>();
 	}
 
 	private String buildQuery() {
@@ -249,9 +257,16 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 					
 					if ("NN".equals(questionType)) {
 						answer.setLongAnswer("The " + property + " of " + subjectLabel + " is " + answerToUse);
+					} else if ("NNS".equals(questionType)) {
+						answer.setLongAnswer(subjectLabel + " is a " + answerToUse + " " + property);						
 					} else if ("VBD".equals(questionType)) {
 						answer.setLongAnswer(subjectLabel + " is " + property + " at " + answerToUse);
+					} else if ("JJ".equals(questionType)) {
+						answer.setLongAnswer(subjectLabel + " is " + answerToUse + " " + property);
+					} else if ("VBP".equals(questionType)) {
+						answer.setLongAnswer(property + " of " + subjectLabel + " is " + answerToUse);
 					}
+					
 					
 				}
 				answers.add(answer);
@@ -264,7 +279,7 @@ public class NLPQueryStage implements Stage<Question, List<Answer>> {
 		
 	}
 
-	private List<String> mapPropertyToRDFPredicate(String property) {
+	protected List<String> mapPropertyToRDFPredicate(String property) {
 		String targettedWord = property.toLowerCase();
 		List<String> result = null;
 		

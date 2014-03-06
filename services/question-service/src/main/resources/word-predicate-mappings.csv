@@ -56,6 +56,7 @@ from,http://dbpedia.org/ontology/stateOfOrigin,
 gdp,http://dbpedia.org/property/gdpNominal,
 governor,http://dbpedia.org/property/governor,
 heavy,,weight
+height,http://dbpedia.org/ontology/height,
 high,http://dbpedia.org/ontology/elevation,
 high,http://dbpedia.org/property/elevationM,
 highest place,http://dbpedia.org/ontology/highestPlace,
@@ -109,6 +110,7 @@ spouse,http://dbpedia.org/ontology/spouse,
 starred,http://dbpedia.org/ontology/starring,
 start,http://dbpedia.org/ontology/sourceCountry,
 successor,http://dbpedia.org/ontology/successor,
+tall,,height
 tomb,,buried
 website,,homepage
 weight,http://dbpedia.org/property/weight,

@@ -27,6 +27,7 @@ import com.acuitra.question.core.Answer;
 import com.acuitra.question.core.Question;
 import com.acuitra.stages.StageException;
 import com.acuitra.stages.integrated.IntegratedQuepyStage;
+import com.acuitra.stages.integrated.NLPMapToDBpediaOntOrPropQueryStage;
 import com.acuitra.stages.integrated.NLPQueryStage;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -187,13 +188,16 @@ public class QuestionResource {
 		context.setInput(question);
 		
 		RunnablePipeline<Question, List<Answer>> nlpPipeline = new RunnablePipeline<>("NLP Pipeline", context);
+		RunnablePipeline<Question, List<Answer>> nlpOntologyPipeline = new RunnablePipeline<>("NLP Ontology Pipeline", context);
 		RunnablePipeline<Question, List<Answer>> quepyPipeline = new RunnablePipeline<>("Quepy Pipeline", context);
 		
 		nlpPipeline.addStage(new NLPQueryStage(namedEntityRecognitionURL, sparqlEndpointURL, namePredicateMapping));
+		nlpOntologyPipeline.addStage(new NLPMapToDBpediaOntOrPropQueryStage(namedEntityRecognitionURL, sparqlEndpointURL, namePredicateMapping));
 		quepyPipeline.addStage(new IntegratedQuepyStage(quepyURL, sparqlEndpointURL, jerseyClient));
 		
 		ParallelPipelineRunner<Question, List<Answer>> pipeRunner = new ParallelPipelineRunner<>(10000);
 		pipeRunner.addPipeline(nlpPipeline);
+		pipeRunner.addPipeline(nlpOntologyPipeline);
 		pipeRunner.addPipeline(quepyPipeline);
 		
 		pipeRunner.run();
@@ -202,22 +206,20 @@ public class QuestionResource {
 			// at least one pipeline is finished	
 			Map<String, List<Answer>> answerMap = context.getPreviousOutputs();
 			
-			List<Answer> quepyAnswers = answerMap.get(IntegratedQuepyStage.class.getName()); 
-			
-			List<Answer> nlpAnswers = answerMap.get(NLPQueryStage.class.getName());
-			
-
-			
+			List<Answer> quepyAnswers = answerMap.get(IntegratedQuepyStage.class.getName()); 			
+			List<Answer> nlpAnswers = answerMap.get(NLPQueryStage.class.getName());			
+			List<Answer> nlpOntologyAnswers = answerMap.get(NLPMapToDBpediaOntOrPropQueryStage.class.getName());
+						
 			List<Answer> results = new ArrayList<>();
 				
-			if (isEmpty(nlpAnswers) && isEmpty(quepyAnswers)) {	
+			if (isEmpty(nlpAnswers) && isEmpty(quepyAnswers) && isEmpty(nlpOntologyAnswers)) {	
 				Answer answer = new Answer();
 				answer.setErrorCode(ErrorCodes.NO_ANSWER_GENERATED);
 				answer.setErrorMessage("Could not find answer");
 				
 				results.add(answer);
 			} else {
-				results = mergeList(results, nlpAnswers, quepyAnswers);
+				results = mergeList(results, nlpAnswers, quepyAnswers, nlpOntologyAnswers);
 				
 			}
 			
